@@ -1,7 +1,7 @@
 # **Finding Lane Lines on the Road** 
 
 
-**Project Overview**
+### Project Overview
 
 When we drive, we use our eyes to decide where to go. The lines on the road that show us where the lanes are act as our constant reference for where to steer the vehicle. Naturally, one of the first things we would like to do in developing a self-driving car is to automatically detect lane lines using an algorithm.
 
@@ -12,6 +12,9 @@ In this project we will detect lane lines in images using Python and OpenCV. Ope
 We will build an algorithm that can annotate the same image like the following
 
 ![image2](examples/laneLines_thirdPass.jpg)
+
+We will then apply the alogorithm over some short video clips (series of images) and annotate the lanes as the car drives down the road.  
+
 
 
 ### Reflection
