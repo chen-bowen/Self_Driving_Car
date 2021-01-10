@@ -158,8 +158,9 @@ class LaneDetection:
         )
 
         # update cache and apply probablistic smoothing
-        self.update_cache(left_lane, self.left_lane_cache)
-        self.update_cache(right_lane, self.right_lane_cache)
+
+        self.left_lane_cache = self.update_cache(left_lane, self.left_lane_cache)
+        self.right_lane_cache = self.update_cache(right_lane, self.right_lane_cache)
 
         left_lane = self.probablistic_smoothing(left_lane, self.left_lane_cache)
         right_lane = self.probablistic_smoothing(right_lane, self.right_lane_cache)
