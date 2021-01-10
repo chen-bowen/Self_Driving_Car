@@ -7,23 +7,12 @@ When we drive, we use our eyes to decide where to go. The lines on the road that
 
 In this project we will detect lane lines in images using Python and OpenCV. OpenCV means "Open-Source Computer Vision", which is a package that has many useful tools for analyzing images. We will build an algorithm that can detect lanes and annotate the location of the lanes as the car drives through. To be more specific, if we have a single scene of road image containing lanes like the following
 
-[image1]: ./test_images/solidWhiteRight.jpg "lanes"
+![image1](test_images/solidWhiteRight.jpg)
 
 We will build an algorithm that can annotate the same image like the following
 
-[image2]: ./examples/line-segments-example.jpg "Grayscale"
+![image2](examples/laneLines_thirdPass.jpg)
 
-
-The goals / steps of this project are the following:
-* Make a pipeline that finds lane lines on the road
-* Reflect on your work in a written report
-
-
-[//]: # (Image References)
-
-[image1]: ./examples/grayscale.jpg "Grayscale"
-
----
 
 ### Reflection
 
