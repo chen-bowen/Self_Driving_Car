@@ -75,10 +75,23 @@ We would like to have solid, connected lines that would clearly indicate the dir
 3. Save these 3 datapoints into 2 separate lists as [(slope 1, intercept 1), (slope 2, intercept 2), ...] and [d1, d2, ...] for left and right lanes, depending on the slope
 4. Take the weighted average of all slopes and intercepts for both the left and right lanes, obtaining two tuples - (left slope, left intercept), (right slope, right intercept) respectively
 5. For both lanes, convert the (slope, intercept) pair into the two end points pair (x1, y1, x2, y2) using specific y values of for those end points. Specifically, we will set the y1 equal to height of the image, while y2 is approximately 0.63 x height of the image. With slopes and intercepts defined, the 2 endpoints x values could be found by the formula `x = (y - intercept) / slope`
-6. Initialize left and right lane cache lists, which will be used to save the past lane lines' endpints in the past n frames. For every frame (image passed through the lane detection algorithm), we calculate a weighted average value of (x1, y1, x2, y2) of the current line and the past lines, with the formula 
+6. Initialize left and right lane cache lists, which will be used to save the past lane lines' endpints in the past n frames. For every frame (image passed through the lane detection algorithm) and each lane, we calculate a weighted average value of (x1, y1, x2, y2) of the current line and the past lines, with the formula 
 ```
-(x1, y1, x2, y2) = w1 * current line ((x1, y1, x2, y2) + average past lines (x1, y1, x2, y2)
+(x1, y1, x2, y2) = w1 * current line (x1, y1, x2, y2) + average past lines (x1, y1, x2, y2)
 ```
+After the smoothed line is calculated, we will append the current line into cache and draw the lines over the image previously processed. The resulting image will look like the following
+
+<img src="examples/line_drew.jpg" width="800" height="500">
+
+The generated line segements now could be used as a mask to annotate where the lanes in a scene.
+
+**Image Annotation**
+
+Calculate the weighted average of original image and the line segments masked image to create the desired annotated image. Final product looks like the following
+
+<img src="examples/line_drew.jpg" width="800" height="500">
+
+We can now try to run the detection algorithm through some short video clips and check on the performances
 
 
 ### 1. Describe your pipeline. As part of the description, explain how you modified the draw_lines() function.
