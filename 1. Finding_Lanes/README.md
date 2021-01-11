@@ -93,8 +93,17 @@ Calculate the weighted average of original image and the line segments masked im
 
 We can now try to run the detection algorithm through some short video clips and check on the performances
 
-[![](http://img.youtube.com/vi/cRSpdTe7DxM/0.jpg)](http://www.youtube.com/watch?v=cRSpdTe7DxM "")
+On straight lines of both white and yellow, the algorithm performed relatively well
 
+white straight lanes
+
+<img src="examples/solidWhiteRight_improved.jpg" width="800" height="500">
+
+yellow straight lanes
+
+<img src="examples/solidYellowLeft_improved.jpg" width="800" height="500">
+
+for more curvey road lanes and changing background, 
 
 ### Potential Shortcomings 
 
