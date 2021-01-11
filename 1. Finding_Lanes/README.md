@@ -97,13 +97,15 @@ On straight lines of both white and yellow, the algorithm performed relatively w
 
 white straight lanes
 
-<img src="examples/solidWhiteRight_improved.jpg" width="800" height="500">
+<img src="examples/solidWhiteRight_improved.gif" width="800" height="500">
 
 yellow straight lanes
 
-<img src="examples/solidYellowLeft_improved.jpg" width="800" height="500">
+<img src="examples/solidYellowLeft_improved.gif" width="800" height="500">
 
-for more curvey road lanes and changing background, 
+for more curvey road lanes and changing background, the algorithm still performs reasonably well
+
+<img src="examples/challenge_improved.gif" width="800" height="500">
 
 ### Potential Shortcomings 
 
