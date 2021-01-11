@@ -7,11 +7,11 @@ When we drive, we use our eyes to decide where to go. The lines on the road that
 
 In this project we will detect lane lines in images using Python and OpenCV. OpenCV means "Open-Source Computer Vision", which is a package that has many useful tools for analyzing images. We will build an algorithm that can detect lanes and annotate the location of the lanes as the car drives through. To be more specific, if we have a single scene of road image containing lanes like the following
 
-<img src="test_images/solidWhiteRight.jpg" width="800" height="400">
+<img src="test_images/solidWhiteRight.jpg" width="800" height="500">
 
 We will build an algorithm that can annotate the same image like the following
 
-<img src="examples/laneLines_thirdPass.jpg" width="800" height="400">
+<img src="examples/laneLines_thirdPass.jpg" width="800" height="500">
 
 We will then apply the alogorithm over some short video clips (series of images) and annotate the lanes as the car drives down the road.  
 
@@ -62,6 +62,23 @@ Lanes are clearly mapped out after this process, so are some other irrelevant ob
 Using cv2's fitpoly function, we are about to define a mask over the image using the appropriate vertices. The mask will only allow values in the region of interest to pass through, while setting values of all positions outside that region of interest to 0. We will define the vertices as a ratio of image size. For example, the top 2 points' x values are approximately 0.6 x image height, while the y values are hovers around 0.5 of image width (0.48 and 0.55 respectively). With the mask built, we can get a clean outline of the lanes, as shown in the following.
 
 <img src="examples/region_masked.jpg" width="800" height="500">
+
+**Hough Lines Overlay**
+
+Hough transform is the popular technique to represent shape in mathematical form, even the shape could be distorted a bit. Using the parameters defined in cv2's houghLines function, we can annotate the broken lanes like the following. 
+
+<img src="examples/line-segments-example.jpg" width="800" height="500">
+
+We would like to have solid, connected lines that would clearly indicate the direction our car is driving to. To accomplish this, we will utilize the weighted average of all slopes and intercepts of the hough line segments to find the desired lane lines' slope and intercepts, weighted by each line segments length. Hough line function will return a line in form of two pairs of x, y coordinates of the line segments two endpoints (x1, y1, x2, y2). General steps are described below
+1. For each line segment, find its slope with the formula `(y2 - y1)/(x2 - x1)`, its intercept from `y1 - slope * x1`, and its distance from `sqrt((y2 - y1)^2 + (x2 - x1)^2)`
+2. Use slope's positive/negative characteristic we can separate lines into left lanes and right lanes, also set thresholds for acceptable slope ranges as restrictions on irrelevant obejects being detected by hough lines
+3. Save these 3 datapoints into 2 separate lists as [(slope 1, intercept 1), (slope 2, intercept 2), ...] and [d1, d2, ...] for left and right lanes, depending on the slope
+4. Take the weighted average of all slopes and intercepts for both the left and right lanes, obtaining two tuples - (left slope, left intercept), (right slope, right intercept) respectively
+5. For both lanes, convert the (slope, intercept) pair into the two end points pair (x1, y1, x2, y2) using specific y values of for those end points. Specifically, we will set the y1 equal to height of the image, while y2 is approximately 0.63 x height of the image. With slopes and intercepts defined, the 2 endpoints x values could be found by the formula `x = (y - intercept) / slope`
+6. Initialize left and right lane cache lists, which will be used to save the past lane lines' endpints in the past n frames. For every frame (image passed through the lane detection algorithm), we calculate a weighted average value of (x1, y1, x2, y2) of the current line and the past lines, with the formula 
+```
+(x1, y1, x2, y2) = w1 * current line ((x1, y1, x2, y2) + average past lines (x1, y1, x2, y2)
+```
 
 
 ### 1. Describe your pipeline. As part of the description, explain how you modified the draw_lines() function.
