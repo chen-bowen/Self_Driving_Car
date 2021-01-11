@@ -95,28 +95,30 @@ We can now try to run the detection algorithm through some short video clips and
 
 On straight lines of both white and yellow, the algorithm performed relatively well
 
-white straight lanes
+**white straight lanes**
 
 <img src="examples/solidWhiteRight_improved.gif" width="800" height="500">
 
-yellow straight lanes
+**yellow straight lanes**
 
 <img src="examples/solidYellowLeft_improved.gif" width="800" height="500">
 
-for more curvey road lanes and changing background, the algorithm still performs reasonably well
+**for more curvey road lanes and changing background, the algorithm still performs reasonably well**
 
 <img src="examples/challenge_improved.gif" width="800" height="500">
 
 ### Potential Shortcomings 
 
+* For an algorithm that involves so many hyperparameters, only tuning the parameters over 3 short videos could lead to massive parameter mining issues. Also tuning the parameters has been rather tedious process. The best way I figured out was changing the parameters and watch its performance over the video, some automations are desparately needed
 
-One potential shortcoming would be what would happen when ... 
+* Car lane changes are not properly handled. Due to the averaging nature of probablistic smoonthing, the lane lines would slowly adjust to the correct location due to caching. When the car changes lanes, the old lane markers will persist rather than disappearing and reappearing.
 
-Another shortcoming could be ...
+* Extremely zig-zagging lanes will make the lane detector struggle to adjust as the averaging of past line segment endpoints will be slowly adjusting to the correct lane. The extreme sharp right turn in the thrid video has already temporarily cause the lane marker to depart from the actual lane.
 
+### Suggested Possible Improvements
 
-### Suggest Possible Improvements
+* **Autoparameter tuning** - Obtain the actual lanes' location in the video, we could automatically tune the parameters of the algorithm by minimizing the distances between the algorithm predicted lane markers and actual markers
 
-A possible improvement would be to ...
+* **Lane changes**- Set a lane change flag, triggered by the event if both detected lanes' slopes both exceed certain thresholds. If that event happens, lane markers will be turned off until the car moves into the new lane stably
 
-Another potential improvement could be to ...
+* **Extreme zig-zags** - To make the lane markers adjust quickly to new lane slopes, a expotential decay weighting on the cache could give more weight to the more recent line segment end points, this will make the line segments more flexible without losing stabilities as the car drives through the lane.
