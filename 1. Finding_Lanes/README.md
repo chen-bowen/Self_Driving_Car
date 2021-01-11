@@ -16,8 +16,16 @@ We will build an algorithm that can annotate the same image like the following
 We will then apply the alogorithm over some short video clips (series of images) and annotate the lanes as the car drives down the road.  
 
 
+### Lane Detection Pipeline
 
-### Reflection
+The algorithm follows a series of steps that eventually has the ablity to annotate the lane lines over the image. These steps are packaged inside a pipeline with the following steps,
+
+1. Color Filtering
+2. Gaussian Blur
+3. Canny Edge Detection
+4. Region of Interest Selection
+5. Hough Lines Overlay
+6. Image Annotation
 
 ### 1. Describe your pipeline. As part of the description, explain how you modified the draw_lines() function.
 

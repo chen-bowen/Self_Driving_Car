@@ -48,17 +48,6 @@ class LaneDetection:
         self.left_lane_cache = list()
         self.right_lane_cache = list()
 
-    def update_cache(self, line, cache):
-        """
-        add line slope and intercept to the given cache,
-        return only the past n lines
-        """
-        # append line to cache only if it's not empty
-        if line is not None:
-            cache.append(line)
-            cache = list(set(cache))  # remove duplicates
-        return cache[-self.cache_size :]
-
     def probablistic_smoothing(self, line, cache):
         """ take the average of past cached endpoints as the new end point of line segments"""
 
@@ -66,15 +55,24 @@ class LaneDetection:
         past_lines_wght = self.prob_smoothing_params["past_lines_weight"]
 
         if line is None:
-            return np.mean(cache, axis=0).round().astype(int)
+            return np.mean(cache, axis=0).round().astype(int), cache[-self.cache_size :]
 
         smoothed_line = (
-            (new_line_wght * np.array(line) + past_lines_wght * np.mean(cache, axis=0))
-            .round()
-            .astype(int)
+            (
+                (
+                    new_line_wght * np.array(line)
+                    + past_lines_wght * np.mean(cache, axis=0)
+                )
+                .round()
+                .astype(int)
+            )
+            if len(cache) > 0
+            else np.array(line)
         )
 
-        return smoothed_line
+        cache.append(line)
+
+        return smoothed_line, cache[-self.cache_size :]
 
     def color_filter(self, image):
         """ Create a color mask that only persists yellow and white color """
@@ -158,12 +156,13 @@ class LaneDetection:
         )
 
         # update cache and apply probablistic smoothing
+        left_lane, self.left_lane_cache = self.probablistic_smoothing(
+            left_lane, self.left_lane_cache
+        )
 
-        self.left_lane_cache = self.update_cache(left_lane, self.left_lane_cache)
-        self.right_lane_cache = self.update_cache(right_lane, self.right_lane_cache)
-
-        left_lane = self.probablistic_smoothing(left_lane, self.left_lane_cache)
-        right_lane = self.probablistic_smoothing(right_lane, self.right_lane_cache)
+        right_lane, self.right_lane_cache = self.probablistic_smoothing(
+            right_lane, self.right_lane_cache
+        )
 
         return left_lane, right_lane
 
@@ -216,7 +215,6 @@ class LaneDetection:
         lane_img = self.region_of_interest(lane_img)
         # 5. hough lines
         lane_img = self.hough_lines(lane_img)
-
         # 6. overlay lane over original image
         result_img = weighted_img(lane_img, img)
 
