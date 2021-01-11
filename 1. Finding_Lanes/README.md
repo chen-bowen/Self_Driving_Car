@@ -93,6 +93,8 @@ Calculate the weighted average of original image and the line segments masked im
 
 We can now try to run the detection algorithm through some short video clips and check on the performances
 
+[![](http://img.youtube.com/vi/cRSpdTe7DxM/0.jpg)](http://www.youtube.com/watch?v=cRSpdTe7DxM "")
+
 
 ### Potential Shortcomings 
 
