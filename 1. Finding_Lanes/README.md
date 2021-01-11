@@ -89,7 +89,7 @@ The generated line segements now could be used as a mask to annotate where the l
 
 Calculate the weighted average of original image and the line segments masked image to create the desired annotated image. Final product looks like the following
 
-<img src="examples/line_drew.jpg" width="800" height="500">
+<img src="examples/line_drew_complete.jpg" width="800" height="500">
 
 We can now try to run the detection algorithm through some short video clips and check on the performances
 
