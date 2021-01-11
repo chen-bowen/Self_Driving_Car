@@ -11,7 +11,7 @@ import cv2
 
 class LaneDetection:
 
-    LANE_LINE_IMG_RATIO = 0.65
+    LANE_LINE_IMG_RATIO = 0.63
 
     def __init__(
         self,
