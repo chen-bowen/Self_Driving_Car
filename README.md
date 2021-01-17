@@ -1,3 +1,4 @@
+
 # Self Driving Car
 Self Driving Car Projects from Udacity
 
@@ -17,3 +18,4 @@ We will build an algorithm that can annotate the same image like the following
 We will then apply the alogorithm over some short video clips (series of images) and annotate the lanes as the car drives down the road, like the following.
 
 <img src="images/solidYellowLeft_improved.gif" width="800" height="500">
+
