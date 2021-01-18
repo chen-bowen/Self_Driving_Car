@@ -1,8 +1,9 @@
 import cv2
+import numpy as np
 
 
-class EdgeFiltering:
-    """ applies combined edge filter for a given image """
+class GradientFiltering:
+    """ applies combined gradient filter for a given image """
 
     def __init__(
         self,
@@ -85,3 +86,48 @@ class EdgeFiltering:
             ((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1))
         ] = 1
         return combined
+
+
+class ColorFiltering:
+    """ Applies color filtering over a given image """
+
+    def __init__(
+        self,
+        white_bounds={"lower": [], "upper": []},
+        yellow_bounds={"lower": [], "upper": []},
+    ):
+        self.white_bounds = white_bounds
+        self.yellow_bounds = yellow_bounds
+
+    def hls_scale(self, img):
+        """ Applies the HLS transform """
+        return cv2.cvtColor(img, cv2.COLOR_RGB2HLS)
+
+    def white_mask(self, converted_img):
+        """ color masking for white """
+        # white color mask
+        lower = np.uint8(self.white_bounds["lower"])
+        upper = np.uint8(self.white_bounds["upper"])
+        white_mask = cv2.inRange(converted_img, lower, upper)
+        return white_mask
+
+    def yellow_mask(self, converted_img):
+        """ color masking for white """
+        # yellow color mask
+        lower = np.uint8(self.yellow_bounds["lower"])
+        upper = np.uint8(self.yellow_bounds["upper"])
+        yellow_mask = cv2.inRange(converted_img, lower, upper)
+        return white_mask
+
+    def apply_color_filter(self, img):
+        """ Applies the white and yellow color mask over image """
+        # Convert image into hls scale
+        converted = self.hls_scale(img)
+        # get yellow and white mask
+        white_mask = self.white_mask(converted)
+        yellow_mask = self.yellow_mask(converted)
+        # combine the mask
+        mask = cv2.bitwise_or(white_mask, yellow_mask)
+        # apply the mask over the image
+        masked_img = cv2.bitwise_and(img, img, mask=mask)
+        return masked_img
