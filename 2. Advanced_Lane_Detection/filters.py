@@ -72,7 +72,7 @@ class GradientFiltering:
         mag_binary[(absgraddir >= thresh_min) & (absgraddir <= thresh_max)] = 1
         return dir_binary
 
-    def combined_threshold(self, image):
+    def apply_gradient_filter(self, image):
         """ Combine the 3 different thresholds """
         # get the 3 different thresholds
         gradx = self.abs_sobel_thresh(image, orient="x")
