@@ -36,71 +36,35 @@ class Line:
         a, b, c = np.mean(self.recent_fitted_coeffs_in_meters, axis=0)
         return ((1 + (2 * a * y + b) ** 2) ** 1.5) / np.absolute(2 * a)
 
-    def update_cache(self, new_fit_pixel, new_fit_meter, clear_cache=False):
-        """
-        Update Line with new fitted coefficients.
-        :param new_fit_pixel: new polynomial coefficients (pixel)
-        :param new_fit_meter: new polynomial coefficients (meter)
-        :param detected: if the Line was detected or inferred
-        :param clear_buffer: if True, reset state
-        :return: None
-        """
-        # update cache if indicator is true
-        if clear_cache:
-            self.recent_fitted_coeffs_in_pix = []
-            self.recent_fitted_coeffs_in_meters = []
-
-        self.recent_fits_pixel.append(new_fit_in_pixel)
-        self.recent_fits_meter.append(new_fit_in_meter)
-
-    def draw_line(self, mask, color=(255, 0, 0), lane_width=50, average=False):
-        """
-        Draw the line over a color mask image
-        """
-        # get the image shape in height, width and channels
-        h, w, c = mask.shape
-
-        # get most recent fit
-        current_fit = self.recent_fitted_coeffs_in_pix[-1]
-        y = np.linspace(0, h - 1, h)
-        a, b, c = self.averge_fit_coeffs if average else current_fit
-
-        # get left and right lines' x values
-        lane_center = a * y ** 2 + b * y + c
-        left_lane = lane_center - lane_width // 2
-        right_lane = lane_center + lane_width // 2
-
-        # convert x and y points into usable format for cv2.fillPoly()
-        pts_left = np.array(list(zip(left_lane, y)))
-        pts_right = np.array(np.flipud(list(zip(right_lane, y))))
-        pts = np.vstack([pts_left, pts_right])
-
-        # Draw the lane onto the blank image
-        combined_img = cv2.fillPoly(mask, [np.int32(pts)], color)
-        return combined_img
-
 
 class LaneDetection:
-    """ Lane detection and drawing over the input warped image """
+    """ Lane detection and drawing over the input warped image, use Line objects as left and right lanes """
 
     Y_METERS_PER_PIX = 30 / 720  # meters per pixel in y dimension
     X_METERS_PER_PIX = 3.7 / 700  # meters per pixel in x dimension
 
     def __init__(
-        self, img=img, num_windows=9, window_margin=100, min_pixels=50, fit_margin=100
+        self,
+        img=img,
+        num_windows=9,
+        window_margin=100,
+        min_pixels=50,
+        fit_tolerance=100,
+        cache_size=15,
     ):
         self.img = img
         self.num_windows = num_windows  # number of sliding windows
         self.window_margin = window_margin  # width of sliding windows
         self.min_pixels = min_pixels  # minimum number of pixels found in a window
-        self.fit_margin = fit_margin  # margin for refit of lane lines
+        self.fit_tolerance = fit_tolerance  # margin for refit of lane lines
+        self.cache_size = cache_size  # number of previously fitted coefficients kept
         self.left_lane = Line()  # instantiate left and right lane objects
         self.right_lane = Line()
 
     def get_lane_approx_location(self):
         """
         Obtained the approximate locations of lane lines using histogram peaks and sliding windows
-        Returns: starting point of left and right lanes
+        updates the line_base_pos attribute of left and right lane lines starting point of left and right lanes
         """
         # using histogram peaks of the bottom half of the image to find approximate location of the lanes
         histogram = np.sum(self.img[self.img.shape[0] // 2 :, :], axis=0)
@@ -113,7 +77,8 @@ class LaneDetection:
     def get_line_sliding_windows(self):
         """
         Iterate through the sliding windows and track the line,
-        used when no previous frames are avaliable
+        used when no previous frames are avaliable,
+        appends to left and right lanes' x_pix_values and y_pix_values attributes
         """
         # Set height of windows - based on nwindows above and image shape
         window_height = np.int(self.img.shape[0] // self.num_windows)
@@ -134,10 +99,10 @@ class LaneDetection:
             win_y_high = self.img.shape[0] - window * window_height
             # x coordinates for the current sliding window
             # has 4 values (high, low) x (left, right)
-            win_xleft_low = leftx_current - margin
-            win_xleft_high = leftx_current + margin
-            win_xright_low = rightx_current - margin
-            win_xright_high = rightx_current + margin
+            win_xleft_low = leftx_current - self.window_margin
+            win_xleft_high = leftx_current + self.window_margin
+            win_xright_low = rightx_current - self.window_margin
+            win_xright_high = rightx_current + self.window_margin
             # Identify the nonzero pixels in x and y within the window i
             valid_left_inds = (
                 (nonzeroy >= win_y_low)
@@ -155,9 +120,9 @@ class LaneDetection:
             left_lane_inds.append(good_left_inds)
             right_lane_inds.append(good_right_inds)
             # If you found > min_pixels pixels, recenter next window on their mean position
-            if len(valid_left_inds) > minpix:
+            if len(valid_left_inds) > self.min_pixels:
                 leftx_current = np.int(np.mean(nonzerox[valid_left_inds]))
-            if len(valid_right_inds) > minpix:
+            if len(valid_right_inds) > self.min_pixels:
                 rightx_current = np.int(np.mean(nonzerox[valid_right_inds]))
 
         # Extract left and right line pixel positions
@@ -169,10 +134,15 @@ class LaneDetection:
             nonzerox[right_lane_inds],
             nonzeroy[right_lane_inds],
         )
+        # update line status detected to be true
+        self.left_lane.detected = True
+        self.right_lane.detected = True
 
     def get_line_search_prior(self):
         """
         Get lanes from fitting polynomials only when lanes are significantly different
+        used when previous frames are avaliable,
+        appends to left and right lanes' x_pix_values and y_pix_values attributes
         """
         # get non-zero elements for the image
         nonzeroy, nonzerox = self.img.nonzero()
@@ -183,19 +153,41 @@ class LaneDetection:
         left_a, left_b, left_c = self.left_lane.recent_fitted_coeffs_in_pix[-1]
         right_a, right_b, right_c = self.right_lane.recent_fitted_coeffs_in_pix[-1]
 
-        # Set the area of search based on nonzero x-values within the +/- margin of the polynomial function
+        # Set the area of search based on nonzero x-values within the +/- tolerance of the polynomial function
         left_lane_inds = (
-            nonzerox > (left_a * (nonzeroy ** 2) + left_b * nonzeroy + left_c - margin)
+            nonzerox
+            > (
+                left_a * (nonzeroy ** 2)
+                + left_b * nonzeroy
+                + left_c
+                - self.fit_tolerance
+            )
         ) & (
-            nonzerox < (left_a * (nonzeroy ** 2) + left_b * nonzeroy + left_c + margin)
+            nonzerox
+            < (
+                left_a * (nonzeroy ** 2)
+                + left_b * nonzeroy
+                + left_c
+                + self.fit_tolerance
+            )
         )
 
         right_lane_inds = (
             nonzerox
-            > (right_a * (nonzeroy ** 2) + right_b * nonzeroy + right_c - margin)
+            > (
+                right_a * (nonzeroy ** 2)
+                + right_b * nonzeroy
+                + right_c
+                - self.fit_tolerance
+            )
         ) & (
             nonzerox
-            < (right_a * (nonzeroy ** 2) + right_b * nonzeroy + right_c + margin)
+            < (
+                right_a * (nonzeroy ** 2)
+                + right_b * nonzeroy
+                + right_c
+                + self.fit_tolerance
+            )
         )
         # Extract left and right line pixel positions
         self.left_lane.x_pix_values, self.left_lane.y_pix_values = (
@@ -208,7 +200,10 @@ class LaneDetection:
         )
 
     def fit_polynomial_on_lanes(self):
-        """Fit polynomial on lane lines"""
+        """
+        Fit polynomial on lane lines in terms of pixel values and meters
+        appends to left and right lanes' recent_fitted_coeffs_in_pix and recent_fitted_coeffs_in_meters attributes
+        """
         # Fit second order polynomials, obtain 3 coefficients, append to fitted coeffs
         # in pixels
         self.left_lane.recent_fitted_coeffs_in_pix.append(
@@ -218,17 +213,35 @@ class LaneDetection:
             np.polyfit(self.right_lane.y_pix_values, self.right_lane.x_pix_values, 2)
         )
         # in meters
-        self.left_lane.recent_fitted_coeffs_in_pix.append(
+        self.left_lane.recent_fitted_coeffs_in_meters.append(
             np.polyfit(
                 self.left_lane.y_pix_values * self.Y_METERS_PER_PIX,
                 self.left_lane.x_pix_values * self.X_METERS_PER_PIX,
                 2,
             )
         )
-        self.right_lane.recent_fitted_coeffs_in_pix.append(
+        self.right_lane.recent_fitted_coeffs_in_meters.append(
             np.polyfit(
                 self.right_lane.y_pix_values * self.Y_METERS_PER_PIX,
                 self.right_lane.x_pix_values * self.X_METERS_PER_PIX,
                 2,
             )
         )
+
+    def detect(self):
+        """
+        method that detect lines,
+        if previously no line was detected, use sliding window method,
+        else use search prior method
+
+        """
+        # get the lane lines approximate locations using histogram peaks method
+        self.get_lane_approx_location()
+        # if don't have lane lines info, use sliding window method
+        if (self.left_lane.detected == False) or (self.right_lane.detected == False):
+            self.get_line_sliding_windows()
+        # if have lane lines info, use prior search method
+        else:
+            self.get_line_search_prior()
+        # fit polynomials on left and right lane lines
+        self.fit_polynomial_on_lanes()
