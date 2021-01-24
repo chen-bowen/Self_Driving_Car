@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-class annotateFrame:
+class AnnotateFrame:
     """ Display road related information from detected lines and filtered image """
 
     def __init__(
