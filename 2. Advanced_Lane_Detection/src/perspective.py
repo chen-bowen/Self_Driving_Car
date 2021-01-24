@@ -7,7 +7,7 @@ import pickle
 class Calibration:
     """ camera calibration, image undistort and perspective transformation on the image """
 
-    def __init__(self, img_dir="camera_cal"):
+    def __init__(self, img_dir="../camera_cal"):
         self.set_calibration_img_dir(img_dir)
         self.set_corners_paramters()
 
@@ -66,7 +66,7 @@ class Calibration:
         dist_pickle = {}
         dist_pickle["mtx"] = mtx
         dist_pickle["dist"] = dist
-        pickle.dump(dist_pickle, open("calibration_model/wide_dist_pickle.p", "wb"))
+        pickle.dump(dist_pickle, open("./calibration_model/wide_dist_pickle.p", "wb"))
 
     def undistort_image(self, img):
         """ undistort the input image using calibrated camera """
@@ -96,12 +96,13 @@ class Calibration:
                     [offset, self.image_size[1] - offset],
                 ]
             )
-            # Given src and dst points, calculate the perspective transform matrix
-            M = cv2.getPerspectiveTransform(src, dst)
+            # Given src and dst points, calculate the perspective transform matrix and its inverse
+            self.M = cv2.getPerspectiveTransform(src, dst)
+            self.M_inverse = cv2.getPerspectiveTransform(dst, src)
             # Warp the image using OpenCV warpPerspective
             warped = cv2.warpPerspective(undistort_img, M, self.image_size)
 
-        return warped, M
+        return warped
 
     def undistort_and_birdeye_transform(self, img):
         """ return the undistort and perspective transform image """
@@ -113,3 +114,12 @@ class Calibration:
         calibrated_image = self.perspective_transform(undistored_img)
 
         return calibrated_image
+
+    def birdeye_to_normal_transform(self, birdeye_img):
+        """ Convert birdeye image back to normal view """
+        # get height and width of the bird's eye view
+        height, width, _ = birdeye_img.shape
+        # convert back to normal view
+        img = cv2.warpPerspective(birdeye_img, self.M_inverse, (width, height))
+
+        return img

@@ -1,4 +1,5 @@
 from line import Line, LaneDetection
+from perspective import Calibration
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -12,16 +13,20 @@ class AnnotateFrame:
         left_lane,
         right_lane,
         img_assets,
+        perspective_transformer,
         line_width=50,
         lane_color=(255, 0, 0),
         road_region_color=(0, 255, 0),
     ):
-        self.left_lane = left_lane
-        self.right_lane = right_lane
-        self.img_assets = img_assets
-        self.line_width = line_width
-        self.lane_color = lane_color
-        self.road_region_color = road_region_color
+        self.left_lane = left_lane  # left lane object
+        self.right_lane = right_lane  # right lane object
+        self.img_assets = img_assets  # intermeidate image assets
+        self.perspective_transformer = (
+            perspective_transformer  # perspective transform object
+        )
+        self.line_width = line_width  # lane line width on marker
+        self.lane_color = lane_color  # lane line color
+        self.road_region_color = road_region_color  # drivable region color
 
     def get_img_assets(self):
         """
@@ -102,7 +107,12 @@ class AnnotateFrame:
         cv2.fillPoly(lane_img, np.int_([pts]), self.road_region_color)
 
         # blend the lane image onto original image
-        return cv2.addWeighted(self.img_warped, 1, lane_img, 0.3, 0)
+        blended_warp = cv2.addWeighted(self.img_warped, 1, lane_img, 0.3, 0)
+        # transform birds eye view back to normal
+        blended_img = self.perspective_transformer.birdeye_to_normal_transform(
+            blended_warp
+        )
+        return blended_img
 
     def lane_info(self):
         """ returns lanes direction, curvature, deviation """
