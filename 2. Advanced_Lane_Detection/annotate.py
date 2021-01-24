@@ -27,7 +27,12 @@ class annotateFrame:
         """
         Set image assets to their specific attributes
         """
-        self.img_filtered, self.img_birdeye, self.img_warped = self.img_assets
+        (
+            self.img_warped,
+            self.img_filtered,
+            self.img_birdeye,
+            self.img_fit,
+        ) = self.img_assets
 
     def draw_lanes(self):
         """
@@ -124,4 +129,69 @@ class annotateFrame:
         )
         return curvature, deviation
 
-    def blend_frame(self, )
+    def blend_frame(self):
+        """ blend multiple image assets onto the orginal image scene """
+        # draw lane lines over the warped image
+        self.lane_fitted_img = self.draw_lanes()
+
+        # define thumbnail ratio size
+        h, w = self.lane_fitted_img.shape[:2]
+        thumbnail_ratio = 0.2
+        thumbnail_h, thumbnail_w = int(thumb_ratio * h), int(thumb_ratio * w)
+        offset_x, offset_y = 20, 15
+
+        # add a gray translucent rectangle as background
+        translucent_background = self.lane_fitted_img.copy()
+        translucent_background = cv2.rectangle(
+            translucent_background,
+            pt1=(0, 0),
+            pt2=(w, thumbnail_h + 2 * offset_y),
+            color=(0, 0, 0),
+            thickness=cv2.FILLED,
+        )
+        self.lane_fitted_img = cv2.addWeighted(
+            src1=translucent_background,
+            alpha=0.2,
+            src2=self.lane_fitted_img,
+            beta=0.8,
+            gamma=0,
+        )
+
+        # add thumbnails
+        loc_idx = 1
+        for img_asset in [self.img_filtered, self.img_birdeye, self.img_fit]:
+            # thumbnail resize
+            thumbnail = cv2.resize(img_asset, dsize=(thumbnail_w, thumbnail_h))
+            thumbnail = np.dstack([thumbnail, thumbnail, thumbnail]) * 255
+            # append to lane fitted image
+            self.lane_fitted_img[
+                offset_y : thumbnail_h + offset_y,
+                loc_idx * offset_x + thumbnail_w : loc_idx * (offset_x + thumbnail_w) :,
+            ] = thumbnail
+
+        # add text regarding lane information
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        curvature, deviation = self.lane_info()
+        # curvature
+        cv2.putText(
+            self.lane_fitted_img,
+            "Curvature radius: {:.02f}m".format(curvature),
+            (860, 60),
+            font,
+            0.9,
+            (255, 255, 255),
+            2,
+            cv2.LINE_AA,
+        )
+        # deviation
+        cv2.putText(
+            self.lane_fitted_img,
+            "Deviation from center: {:.02f}m".format(deviation),
+            (860, 130),
+            font,
+            0.9,
+            (255, 255, 255),
+            2,
+            cv2.LINE_AA,
+        )
+        return self.lane_fitted_img

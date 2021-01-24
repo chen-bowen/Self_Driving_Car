@@ -17,7 +17,7 @@ class GradientFiltering:
         self.magnitude_threshold = magnitude_threshold
 
     def abs_sobel_thresh(self, img, orient="x"):
-        """ produce a absoulte threshold binary filter for directional gradient """
+        """ produce a absolute threshold binary filter for directional gradient """
         # x, y directions
         orient_dir = {"x": [1, 0], "y": [0, 1]}
         # convert grayscale
