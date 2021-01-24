@@ -22,9 +22,9 @@ class Calibration:
         self.cal_img_dir = img_dir
 
     def find_chess_board_corners(self):
-        """ 
+        """
         Find the all the chess board corners of the images under image calibration dir
-        returns a list of corners for each image 
+        returns a list of corners for each image
         """
         # initialize the object points list and corners points list
         objpoints = []
@@ -103,7 +103,7 @@ class Calibration:
 
         return warped, M
 
-    def calibrate(self, img):
+    def undistort_and_birdeye_transform(self, img):
         """ return the undistort and perspective transform image """
         # set image size
         self.image_size = (img.shape[1], img.shape[0])
