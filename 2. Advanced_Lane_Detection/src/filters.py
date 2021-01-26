@@ -23,53 +23,53 @@ class GradientFiltering:
         # convert grayscale
         grayscale = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
         # calculate gradient or a certain orient
-        derivative = cv2.Sobel(gray, cv2.CV_64F, *orient_dir[orient])
+        derivative = cv2.Sobel(grayscale, cv2.CV_64F, *orient_dir[orient])
         abs_derivative = np.absolute(derivative)
         # Scale to 8-bit (0 - 255) then convert to type = np.uint8
-        scaled_sabel = np.uint8(255 * abs_derivative / np.max(abs_derivative))
+        scaled_sobel = np.uint8(255 * abs_derivative / np.max(abs_derivative))
         # return mask
         thresh_min, thresh_max = self.sobel_threshold
-        grad_binary = np.zeros_like(scaled_sabel)
+        grad_binary = np.zeros_like(scaled_sobel)
         grad_binary[(scaled_sobel >= thresh_min) & (scaled_sobel <= thresh_max)] = 1
 
         return grad_binary
 
-    def mag_thresh(self, image):
+    def mag_thresh(self, img):
         """ produce a magitude threshold binary filter for directional gradient """
         # x, y directions
         orient_dir = {"x": [1, 0], "y": [0, 1]}
         # convert grayscale
         grayscale = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
         # calculate gradient or a certain orient
-        x_derivative = cv2.Sobel(gray, cv2.CV_64F, *orient_dir["x"])
-        y_derivative = cv2.Sobel(gray, cv2.CV_64F, *orient_dir["y"])
+        x_derivative = cv2.Sobel(grayscale, cv2.CV_64F, *orient_dir["x"])
+        y_derivative = cv2.Sobel(grayscale, cv2.CV_64F, *orient_dir["y"])
         # calculate gradient magnitude
         derivative_magnitude = np.sqrt(x_derivative ** 2 + y_derivative ** 2)
         # Scale to 8-bit (0 - 255) then convert to type = np.uint8
-        scaled_sabel = np.uint8(
+        scaled_sobel = np.uint8(
             255 * derivative_magnitude / np.max(derivative_magnitude)
         )
         # return mask
         thresh_min, thresh_max = self.sobel_threshold
-        mag_binary = np.zeros_like(scaled_sabel)
+        mag_binary = np.zeros_like(scaled_sobel)
         mag_binary[(scaled_sobel >= thresh_min) & (scaled_sobel <= thresh_max)] = 1
 
         return mag_binary
 
-    def dir_threshold(self, image):
+    def dir_threshold(self, img):
         # x, y directions
         orient_dir = {"x": [1, 0], "y": [0, 1]}
         # convert grayscale
         grayscale = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
         # calculate gradient or a certain orient
-        x_derivative = cv2.Sobel(gray, cv2.CV_64F, *orient_dir["x"])
-        y_derivative = cv2.Sobel(gray, cv2.CV_64F, *orient_dir["y"])
+        x_derivative = cv2.Sobel(grayscale, cv2.CV_64F, *orient_dir["x"])
+        y_derivative = cv2.Sobel(grayscale, cv2.CV_64F, *orient_dir["y"])
         # Use np.arctan2(abs_sobely, abs_sobelx) to calculate the direction of the gradient
-        absgraddir = np.arctan2(np.absolute(sobely), np.absolute(sobelx))
+        absgraddir = np.arctan2(np.absolute(y_derivative), np.absolute(x_derivative))
         # return mask
         thresh_min, thresh_max = self.sobel_threshold
-        mag_binary = np.zeros_like(absgraddir)
-        mag_binary[(absgraddir >= thresh_min) & (absgraddir <= thresh_max)] = 1
+        dir_binary = np.zeros_like(absgraddir)
+        dir_binary[(absgraddir >= thresh_min) & (absgraddir <= thresh_max)] = 1
         return dir_binary
 
     def apply_gradient_filter(self, image):
@@ -93,8 +93,8 @@ class ColorFiltering:
 
     def __init__(
         self,
-        white_bounds={"lower": [], "upper": []},
-        yellow_bounds={"lower": [], "upper": []},
+        white_bounds={"lower": [0, 150, 0], "upper": [255, 255, 255]},
+        yellow_bounds={"lower": [50, 0, 100], "upper": [100, 255, 255]},
     ):
         self.white_bounds = white_bounds
         self.yellow_bounds = yellow_bounds
@@ -117,7 +117,7 @@ class ColorFiltering:
         lower = np.uint8(self.yellow_bounds["lower"])
         upper = np.uint8(self.yellow_bounds["upper"])
         yellow_mask = cv2.inRange(converted_img, lower, upper)
-        return white_mask
+        return yellow_mask
 
     def apply_color_filter(self, img):
         """ Applies the white and yellow color mask over image """
