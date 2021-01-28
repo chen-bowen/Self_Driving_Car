@@ -30,19 +30,19 @@ def process_frame(
 
     # apply morphology filter
     morph = MorphologyFiltering(**morph_params)
-    combined_filtered_image2 = morph.apply_morphology_filter(combined_filtered_image)
+    moprhed_image = morph.apply_morphology_filter(combined_filtered_image)
 
     # calibrate the carmera
     perspective_transformer = Calibration()
     perspective_transformer.set_calibration()
     # undistort and convert image to bird's eye view
     birdeye_filtered_img = perspective_transformer.undistort_and_birdeye_transform(
-        combined_filtered_image2
+        moprhed_image
     )
     birdeye_original_img = perspective_transformer.undistort_and_birdeye_transform(img)
 
     # detect lanes
-    left_lane, right_lane = LaneDetection(
+    left_lane, right_lane, img_fit = LaneDetection(
         img=birdeye_filtered_img, **lane_detect_params
     ).detect()
     # annotate frame
@@ -50,10 +50,10 @@ def process_frame(
         left_lane,
         right_lane,
         img_assets=[
-            birdeye_original_img,
-            binary_img,
-            birdeye_original_img,
-        ],  # to do: add image fit
+            moprhed_image,
+            birdeye_filtered_img,
+            img_fit,
+        ],
         **annotate_params
     )
     # produce the final blended frame
