@@ -15,6 +15,7 @@ class GradientFiltering:
         self.sobel_kernel_size = sobel_kernel_size
         self.sobel_threshold = sobel_threshold
         self.magnitude_threshold = magnitude_threshold
+        self.direction_threshold = direction_threshold
 
     def abs_sobel_thresh(self, img, orient="x"):
         """ produce a absolute threshold binary filter for directional gradient """
@@ -29,12 +30,13 @@ class GradientFiltering:
         scaled_sobel = np.uint8(255 * abs_derivative / np.max(abs_derivative))
         # return mask
         thresh_min, thresh_max = self.sobel_threshold
-        grad_binary = np.zeros_like(scaled_sobel)
-        grad_binary[(scaled_sobel >= thresh_min) & (scaled_sobel <= thresh_max)] = 1
+        _, grad_binary = cv2.threshold(
+            scaled_sobel, thresh_min, thresh_max, cv2.THRESH_BINARY
+        )
 
-        return grad_binary
+        return grad_binary.astype(bool)
 
-    def mag_thresh(self, img):
+    def mag_threshold(self, img):
         """ produce a magitude threshold binary filter for directional gradient """
         # x, y directions
         orient_dir = {"x": [1, 0], "y": [0, 1]}
@@ -50,11 +52,13 @@ class GradientFiltering:
             255 * derivative_magnitude / np.max(derivative_magnitude)
         )
         # return mask
-        thresh_min, thresh_max = self.sobel_threshold
-        mag_binary = np.zeros_like(scaled_sobel)
-        mag_binary[(scaled_sobel >= thresh_min) & (scaled_sobel <= thresh_max)] = 1
+        thresh_min, thresh_max = self.magnitude_threshold
 
-        return mag_binary
+        _, mag_binary = cv2.threshold(
+            scaled_sobel, thresh_min, thresh_max, cv2.THRESH_BINARY
+        )
+
+        return mag_binary.astype(bool)
 
     def dir_threshold(self, img):
         # x, y directions
@@ -67,9 +71,12 @@ class GradientFiltering:
         # Use np.arctan2(abs_sobely, abs_sobelx) to calculate the direction of the gradient
         absgraddir = np.arctan2(np.absolute(y_derivative), np.absolute(x_derivative))
         # return mask
-        thresh_min, thresh_max = self.sobel_threshold
-        dir_binary = np.zeros_like(absgraddir)
-        dir_binary[(absgraddir >= thresh_min) & (absgraddir <= thresh_max)] = 1
+        thresh_min, thresh_max = self.direction_threshold
+
+        _, dir_binary = cv2.threshold(
+            absgraddir, thresh_min, thresh_max, cv2.THRESH_BINARY
+        )
+
         return dir_binary
 
     def apply_gradient_filter(self, image):
@@ -77,57 +84,68 @@ class GradientFiltering:
         # get the 3 different thresholds
         gradx = self.abs_sobel_thresh(image, orient="x")
         grady = self.abs_sobel_thresh(image, orient="y")
-        mag_binary = self.mag_thresh(image)
+        mag_binary = self.mag_threshold(image)
         dir_binary = self.dir_threshold(image)
 
         # combine filters
-        combined = np.zeros_like(dir_binary)
-        combined[
-            ((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1))
-        ] = 1
-        return combined
+        gradient_filters = np.logical_and(gradx, grady)
+        mag_dir_filters = np.logical_and(mag_binary, dir_binary)
+        combined_filters = np.logical_or(gradient_filters, mag_dir_filters)
+        return combined_filters.astype(np.uint8)
 
 
 class ColorFiltering:
     """ Applies color filtering over a given image """
 
-    def __init__(
-        self,
-        white_bounds={"lower": [0, 150, 0], "upper": [255, 255, 255]},
-        yellow_bounds={"lower": [50, 0, 100], "upper": [100, 255, 255]},
-    ):
-        self.white_bounds = white_bounds
-        self.yellow_bounds = yellow_bounds
+    def __init__(self, s_thresholds=(150, 255), r_thresholds=(200, 255)):
+        self.s_thresholds = s_thresholds
+        self.r_thresholds = r_thresholds
 
     def hls_scale(self, img):
         """ Applies the HLS transform """
-        return cv2.cvtColor(img, cv2.COLOR_RGB2HLS)
+        return cv2.cvtColor(img.copy(), cv2.COLOR_RGB2HLS)
 
-    def white_mask(self, converted_img):
-        """ color masking for white """
-        # white color mask
-        lower = np.uint8(self.white_bounds["lower"])
-        upper = np.uint8(self.white_bounds["upper"])
-        white_mask = cv2.inRange(converted_img, lower, upper)
-        return white_mask
+    def s_channel_filter(self, img):
+        """ color filter for s channel """
+        # convert image to hls scale
+        converted_img = self.hls_scale(img)
+        # get threshold min and max
+        thresh_min, thresh_max = self.s_thresholds
+        # get s channel binary
+        _, s_binary = cv2.threshold(
+            converted_img[:, :, 2], thresh_min, thresh_max, cv2.THRESH_BINARY
+        )
+        return s_binary.astype(np.uint8)
 
-    def yellow_mask(self, converted_img):
-        """ color masking for white """
-        # yellow color mask
-        lower = np.uint8(self.yellow_bounds["lower"])
-        upper = np.uint8(self.yellow_bounds["upper"])
-        yellow_mask = cv2.inRange(converted_img, lower, upper)
-        return yellow_mask
+    def r_channel_filter(self, img):
+        """ color filter for s channel """
+        # get threshold min and max
+        thresh_min, thresh_max = self.r_thresholds
+        # get s channel binary
+        _, s_binary = cv2.threshold(
+            img[:, :, 0], thresh_min, thresh_max, cv2.THRESH_BINARY
+        )
+        return s_binary.astype(np.uint8)
 
     def apply_color_filter(self, img):
         """ Applies the white and yellow color mask over image """
-        # Convert image into hls scale
-        converted = self.hls_scale(img)
-        # get yellow and white mask
-        white_mask = self.white_mask(converted)
-        yellow_mask = self.yellow_mask(converted)
-        # combine the mask
-        mask = cv2.bitwise_or(white_mask, yellow_mask)
+        # s channel filter
+        s_filter = self.s_channel_filter(img)
+        # r channel filter
+        r_filter = self.r_channel_filter(img)
         # apply the mask over the image
-        masked_img = cv2.bitwise_and(img, img, mask=mask)
-        return masked_img
+        combined_filter = np.logical_or(s_filter, r_filter)
+        return combined_filter
+
+
+class MorphologyFiltering:
+    def __init__(self, kernel_size=(5, 5)):
+        self.kernel_size = kernel_size
+
+    def get_kernel(self):
+        return np.ones(self.kernel_size, np.uint8)
+
+    def apply_morphology_filter(self, binary_img):
+        """apply a light morphology to "fill the gaps" in the binary image"""
+        kernel = self.get_kernel()
+        return cv2.morphologyEx(binary_img.astype(np.uint8), cv2.MORPH_CLOSE, kernel)

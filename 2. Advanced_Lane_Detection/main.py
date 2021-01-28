@@ -1,6 +1,6 @@
 from src.perspective import Calibration
 from src.line import LaneDetection
-from src.filters import ColorFiltering, GradientFiltering
+from src.filters import ColorFiltering, GradientFiltering, MorphologyFiltering
 from src.annotate import AnnotateFrame
 import numpy as np
 import cv2
@@ -8,28 +8,43 @@ import glob
 
 
 def process_frame(
-    img, gradient_params, color_params, lane_detect_params, annotate_params
+    img,
+    gradient_params,
+    color_params,
+    morph_params,
+    lane_detect_params,
+    annotate_params,
 ):
     """ pipeline that process and annotate a single frame """
-    # apply gradient filters
-    gradient = GradientFiltering(**gradient_params)
-    binary_img = gradient.apply_gradient_filter(img)
+
     # apply color filters
     color = ColorFiltering(**color_params)
-    color_filtered_img = color.apply_color_filter(binary_img)
+    color_filtered_img = color.apply_color_filter(img)
+
+    # apply gradient filters
+    gradient = GradientFiltering(**gradient_params)
+    gradient_filtered_img = gradient.apply_gradient_filter(img)
+
+    # combine gradient and color filter
+    combined_filtered_image = np.logical_or(color_filtered_img, gradient_filtered_img)
+
+    # apply morphology filter
+    morph = MorphologyFiltering(**morph_params)
+    combined_filtered_image2 = morph.apply_morphology_filter(combined_filtered_image)
+
     # calibrate the carmera
     perspective_transformer = Calibration()
     perspective_transformer.set_calibration()
     # undistort and convert image to bird's eye view
     birdeye_filtered_img = perspective_transformer.undistort_and_birdeye_transform(
-        color_filtered_img
+        combined_filtered_image2
     )
     birdeye_original_img = perspective_transformer.undistort_and_birdeye_transform(img)
 
     # detect lanes
     left_lane, right_lane = LaneDetection(
         img=birdeye_filtered_img, **lane_detect_params
-    )
+    ).detect()
     # annotate frame
     annotate = AnnotateFrame(
         left_lane,
@@ -55,14 +70,11 @@ if __name__ == "__main__":
             img,
             gradient_params=dict(
                 sobel_kernel_size=3,
-                sobel_threshold=(0, 255),
-                magnitude_threshold=(0, 255),
-                direction_threshold=(0, np.pi / 2),
+                sobel_threshold=(50, 150),
+                magnitude_threshold=(30, 100),
+                direction_threshold=(0.7, 1.3),
             ),
-            color_params=dict(
-                white_bounds={"lower": [0, 150, 0], "upper": [255, 255, 255]},
-                yellow_bounds={"lower": [50, 0, 100], "upper": [100, 255, 255]},
-            ),
+            color_params=dict(s_thresholds=(150, 255), r_thresholds=(200, 255)),
             lane_detect_params=dict(
                 num_windows=9,
                 window_margin=50,

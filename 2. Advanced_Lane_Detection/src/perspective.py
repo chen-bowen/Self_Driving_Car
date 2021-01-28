@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import os
 import pickle
+import glob
 
 
 class Calibration:
@@ -18,8 +19,10 @@ class Calibration:
         self.corners_offset = 100
 
     def set_calibration_img_dir(self, img_dir):
-        """set the directory of all the calibration images"""
-        self.cal_img_dir = img_dir
+        """set the directory of all the calibration images and destination of calibration model"""
+        current_file_path = os.path.dirname(os.path.realpath(__file__))
+        self.cal_img_dir = current_file_path + "/" + img_dir
+        self.cal_model_dir = current_file_path + "/calibration_model/wide_dist_pickle.p"
 
     def find_chess_board_corners(self):
         """
@@ -39,6 +42,7 @@ class Calibration:
             # read the image and convert image to gray scale
             img = cv2.imread(img_name)
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            self.gray_shape = gray.shape[::-1]
             # Find the chessboard corners
             found, corners = cv2.findChessboardCorners(gray, (self.nx, self.ny), None)
             # If found, append the object and image pages
@@ -59,14 +63,15 @@ class Calibration:
         # get image and object points
         imgpoints, objpoints = self.find_chess_board_corners()
         # return distortion transfomration matrix and distances
-        ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(
-            objpoints, imgpoints, self.image_size, None, None
+        ret, self.mtx, self.dist, rvecs, tvecs = cv2.calibrateCamera(
+            objpoints, imgpoints, self.gray_shape, None, None
         )
         # Save the camera calibration result for later use
         dist_pickle = {}
-        dist_pickle["mtx"] = mtx
-        dist_pickle["dist"] = dist
-        pickle.dump(dist_pickle, open("./calibration_model/wide_dist_pickle.p", "wb"))
+        dist_pickle["mtx"] = self.mtx
+        dist_pickle["dist"] = self.dist
+
+        pickle.dump(dist_pickle, open(self.cal_model_dir, "wb"))
 
     def undistort_image(self, img):
         """ undistort the input image using calibrated camera """
@@ -78,40 +83,41 @@ class Calibration:
         return undistored_image
 
     def perspective_transform_image(self, undistort_img):
-        """ Perform perspective transform on the input undistorted image """
-        # Convert undistorted image to grayscale
-        gray = cv2.cvtColor(undistort_img, cv2.COLOR_BGR2GRAY)
-        # Search for corners in the grayscaled image
-        found, corners = cv2.findChessboardCorners(gray, (nx, ny), None)
+        """ Perform perspective transform on the input undistorted 2-D image """
 
-        if found == True:
-            # define source points for the perspective transform
-            src = np.float32([corners[0], corners[nx - 1], corners[-1], corners[-nx]])
-            # define the destination points
-            dst = np.float32(
-                [
-                    [offset, offset],
-                    [self.image_size[0] - offset, offset],
-                    [self.image_size[0] - offset, self.image_size[1] - offset],
-                    [offset, self.image_size[1] - offset],
-                ]
-            )
-            # Given src and dst points, calculate the perspective transform matrix and its inverse
-            self.M = cv2.getPerspectiveTransform(src, dst)
-            self.M_inverse = cv2.getPerspectiveTransform(dst, src)
-            # Warp the image using OpenCV warpPerspective
-            warped = cv2.warpPerspective(undistort_img, M, self.image_size)
+        # define source points for the perspective transform
+        h, w = undistort_img.shape[:2]
 
+        src = np.float32(
+            [
+                [w, h - 10],  # bottom right
+                [0, h - 10],  # bottom left
+                [546, 460],  # top left, lane top left corner from polygon
+                [732, 460],  # top right, lane top right corner from polygon
+            ]
+        )
+        dst = np.float32(
+            [
+                [w, h],  # bottom right
+                [0, h],  # bottom left
+                [0, 0],  # top left
+                [w, 0],  # top right
+            ]
+        )
+        # Given src and dst points, calculate the perspective transform matrix and its inverse
+        self.M = cv2.getPerspectiveTransform(src, dst)
+        self.M_inverse = cv2.getPerspectiveTransform(dst, src)
+        # Warp the image using OpenCV warpPerspective
+        warped = cv2.warpPerspective(undistort_img, self.M, (w, h))
+        # return warped image only found the object
         return warped
 
     def undistort_and_birdeye_transform(self, img):
         """ return the undistort and perspective transform image """
-        # set image size
-        self.image_size = (img.shape[1], img.shape[0])
         # undistort image
         undistored_img = self.undistort_image(img)
         # perspective transform the image
-        calibrated_image = self.perspective_transform(undistored_img)
+        calibrated_image = self.perspective_transform_image(undistored_img)
 
         return calibrated_image
 

@@ -1,5 +1,5 @@
-from line import Line, LaneDetection
-from perspective import Calibration
+from src.line import Line, LaneDetection
+from src.perspective import Calibration
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -147,7 +147,7 @@ class AnnotateFrame:
         # define thumbnail ratio size
         h, w = self.lane_fitted_img.shape[:2]
         thumbnail_ratio = 0.2
-        thumbnail_h, thumbnail_w = int(thumb_ratio * h), int(thumb_ratio * w)
+        thumbnail_h, thumbnail_w = int(thumbnail_ratio * h), int(thumbnail_ratio * w)
         offset_x, offset_y = 20, 15
 
         # add a gray translucent rectangle as background

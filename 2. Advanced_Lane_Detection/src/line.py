@@ -47,7 +47,7 @@ class LaneDetection:
 
     def __init__(
         self,
-        img=img,
+        img,
         num_windows=9,
         window_margin=50,
         min_pixels=50,
@@ -90,7 +90,7 @@ class LaneDetection:
         x = np.array(nonzero[1])
 
         # use sliding window method to locate lane lines for both left and right lanes
-        for lane in [self.left_lane, right_lane]:
+        for lane in [self.left_lane, self.right_lane]:
             # initialize iterations parameters
             x_current = lane.line_base_pos
             lane_inds = []
@@ -118,6 +118,13 @@ class LaneDetection:
                     x_current = np.int(np.mean(x[valid_inds]))
 
             # Extract lane line pixel positions and update x_pix_values, y_pix_values attributes of the line object
+            try:
+                # concat lane inds to make 1-d
+                lane_inds = np.concatenate(lane_inds)
+            except ValueError:
+                # Avoids an error if the above is not implemented fully
+                pass
+
             lane.x_pix_values, lane.y_pix_values = (
                 x[lane_inds],
                 y[lane_inds],
