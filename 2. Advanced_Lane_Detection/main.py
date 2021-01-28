@@ -50,11 +50,13 @@ def process_frame(
         left_lane,
         right_lane,
         img_assets=[
+            birdeye_original_img,
             moprhed_image,
             birdeye_filtered_img,
             img_fit,
         ],
-        **annotate_params
+        perspective_transformer=perspective_transformer,
+        **annotate_params,
     )
     # produce the final blended frame
     res_frame = annotate.blend_frame()

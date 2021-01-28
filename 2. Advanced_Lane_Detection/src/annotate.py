@@ -1,4 +1,4 @@
-from src.line import Line, LaneDetection
+from src.line import LaneDetection
 from src.perspective import Calibration
 import cv2
 import numpy as np
@@ -27,6 +27,7 @@ class AnnotateFrame:
         self.line_width = line_width  # lane line width on marker
         self.lane_color = lane_color  # lane line color
         self.road_region_color = road_region_color  # drivable region color
+        self.get_img_assets()
 
     def get_img_assets(self):
         """
@@ -122,8 +123,11 @@ class AnnotateFrame:
             + self.right_lane.radius_of_curvature_in_meters
         ) / 2
         # get lane width and center position
-        lane_width = self.right_lane.line_base_pos - self.left_lane.line_base_pos
-        lane_center = self.processed_img.shape[1] / 2
+        lane_width = (
+            self.right_lane.line_base_pos - self.left_lane.line_base_pos
+        ) * LaneDetection.X_METERS_PER_PIX
+
+        lane_center = self.img_warped.shape[1] / 2
         vehicle_center = (
             self.right_lane.line_base_pos + self.left_lane.line_base_pos
         ) / 2
@@ -137,7 +141,7 @@ class AnnotateFrame:
             if vehicle_center < lane_center
             else "Centered"
         )
-        return curvature, deviation
+        return lane_width, curvature, deviation
 
     def blend_frame(self):
         """ blend multiple image assets onto the orginal image scene """
@@ -172,21 +176,41 @@ class AnnotateFrame:
         for img_asset in [self.img_filtered, self.img_birdeye, self.img_fit]:
             # thumbnail resize
             thumbnail = cv2.resize(img_asset, dsize=(thumbnail_w, thumbnail_h))
-            thumbnail = np.dstack([thumbnail, thumbnail, thumbnail]) * 255
+            # resize to 3-D if needed
+            if len(img_asset.shape) < 3:
+                thumbnail = np.dstack([thumbnail, thumbnail, thumbnail]) * 255
+
             # append to lane fitted image
             self.lane_fitted_img[
-                offset_y : thumbnail_h + offset_y,
-                loc_idx * offset_x + thumbnail_w : loc_idx * (offset_x + thumbnail_w) :,
+                offset_y : (thumbnail_h + offset_y),
+                (loc_idx * (offset_x + thumbnail_w) - thumbnail_w) : (
+                    loc_idx * (offset_x + thumbnail_w)
+                ),
+                :,
             ] = thumbnail
+
+            loc_idx += 1
 
         # add text regarding lane information
         font = cv2.FONT_HERSHEY_SIMPLEX
-        curvature, deviation = self.lane_info()
+        lane_width, curvature, deviation = self.lane_info()
+        # lane_width
+        cv2.putText(
+            self.lane_fitted_img,
+            "Lane Width: {:.02f}m".format(lane_width),
+            (860, 60),
+            font,
+            0.9,
+            (255, 255, 255),
+            2,
+            cv2.LINE_AA,
+        )
+
         # curvature
         cv2.putText(
             self.lane_fitted_img,
-            "Curvature radius: {:.02f}m".format(curvature),
-            (860, 60),
+            "Curvature Radius: {:.02f}m".format(curvature),
+            (860, 130),
             font,
             0.9,
             (255, 255, 255),
@@ -196,8 +220,8 @@ class AnnotateFrame:
         # deviation
         cv2.putText(
             self.lane_fitted_img,
-            "Deviation from center: {:.02f}m".format(deviation),
-            (860, 130),
+            "Deviation from center: {}m".format(deviation),
+            (860, 200),
             font,
             0.9,
             (255, 255, 255),

@@ -196,17 +196,13 @@ class LaneDetection:
         # fit polynomials on left and right lane lines
         self.fit_polynomial_on_lanes()
         # create an annotated output image with left and right lanes colored
-        img_fit = np.dstack((self.img, self.img, self.img)) * 255
-        # left lane red
-        img_fit[self.left_lane.y_pix_values, self.left_lane.x_pix_values] = [
-            255,
-            0,
-            0,
-        ]
-        # right lane blue
-        img_fit[self.right_lane.y_pix_values, self, self.right_lane.x_pix_values] = [
-            0,
-            0,
-            255,
-        ]
-        return self.left_lane, self.right_lane, img_fit
+        annotated_img = np.dstack((self.img, self.img, self.img)) * 255
+        # left lane blue
+        annotated_img[
+            list(self.left_lane.y_pix_values), list(self.left_lane.x_pix_values)
+        ] = [0, 0, 255]
+        # right lane red
+        annotated_img[
+            list(self.right_lane.y_pix_values), list(self.right_lane.x_pix_values)
+        ] = [255, 0, 0]
+        return self.left_lane, self.right_lane, annotated_img
