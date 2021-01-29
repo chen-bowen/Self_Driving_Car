@@ -17,6 +17,10 @@ class Line:
         self.x_pix_values = None
         # y values for detected line pixels
         self.y_pix_values = None
+        # x values for fitted solid line
+        self.x_pix_values_continuous = None
+        # y values for fitted solid line
+        self.y_pix_values_continuous = None
         # window margin attribute for ease of access
         self.window_margin = 50
 
@@ -176,6 +180,16 @@ class LaneDetection:
                     lane.x_pix_values * self.X_METERS_PER_PIX,
                     2,
                 )
+            )
+            # update x and y pixel continuous values (for line drawing)
+            lane.y_pix_values_continuous = np.linspace(
+                0, self.img.shape[0] - 1, self.img.shape[0]
+            )
+            a, b, c = lane.recent_fitted_coeffs_in_pix[-1]
+            lane.x_pix_values_continuous = (
+                a * (lane.y_pix_values_continuous ** 2)
+                + b * lane.y_pix_values_continuous
+                + c
             )
 
     def detect(self):

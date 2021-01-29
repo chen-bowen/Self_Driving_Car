@@ -50,6 +50,7 @@ def process_frame(
         left_lane,
         right_lane,
         img_assets=[
+            img,
             birdeye_original_img,
             moprhed_image,
             birdeye_filtered_img,

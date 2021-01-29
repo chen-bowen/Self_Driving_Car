@@ -14,8 +14,8 @@ class AnnotateFrame:
         right_lane,
         img_assets,
         perspective_transformer,
-        line_width=50,
-        lane_color=(255, 0, 0),
+        line_width=100,
+        lane_colors=[(0, 0, 255), (255, 0, 0)],
         road_region_color=(0, 255, 0),
     ):
         self.left_lane = left_lane  # left lane object
@@ -25,7 +25,7 @@ class AnnotateFrame:
             perspective_transformer  # perspective transform object
         )
         self.line_width = line_width  # lane line width on marker
-        self.lane_color = lane_color  # lane line color
+        self.lane_colors = lane_colors  # lane line color
         self.road_region_color = road_region_color  # drivable region color
         self.get_img_assets()
 
@@ -34,6 +34,7 @@ class AnnotateFrame:
         Set image assets to their specific attributes
         """
         (
+            self.image_original,
             self.img_warped,
             self.img_filtered,
             self.img_birdeye,
@@ -49,15 +50,16 @@ class AnnotateFrame:
         lane_img = np.zeros_like(self.img_warped)
 
         # recast the x and y points into usable format for cv2.fillPoly()
-        for lane in [self.left_lane, self.right_lane]:
+        for i in range(len([self.left_lane, self.right_lane])):
+            lane = [self.left_lane, self.right_lane][i]
             # get points with - half of width
             pts_l = np.array(
                 [
                     np.transpose(
                         np.vstack(
                             [
-                                lane.x_pix_values - self.line_width // 2,
-                                lane.y_pix_values,
+                                lane.x_pix_values_continuous - self.line_width // 2,
+                                lane.y_pix_values_continuous,
                             ]
                         )
                     )
@@ -70,8 +72,8 @@ class AnnotateFrame:
                         np.transpose(
                             np.vstack(
                                 [
-                                    lane.x_pix_values + self.line_width // 2,
-                                    lane.y_pix_values,
+                                    lane.x_pix_values_continuous + self.line_width // 2,
+                                    lane.y_pix_values_continuous,
                                 ]
                             )
                         )
@@ -81,14 +83,17 @@ class AnnotateFrame:
             # stack the points to get line block
             pts = np.hstack((pts_l, pts_r))
             # draw line back onto base image
-            cv2.fillPoly(lane_img, np.int32([pts]), self.lane_color)
+            cv2.fillPoly(lane_img, np.int32([pts]), self.lane_colors[i])
 
         # draw green polygon over the image
         pts_left = np.array(
             [
                 np.transpose(
                     np.vstack(
-                        [self.left_lane.x_pix_values, self.left_lane.y_pix_values]
+                        [
+                            self.left_lane.x_pix_values_continuous,
+                            self.left_lane.y_pix_values_continuous,
+                        ]
                     )
                 )
             ]
@@ -98,7 +103,10 @@ class AnnotateFrame:
                 np.flipud(
                     np.transpose(
                         np.vstack(
-                            [self.right_lane.x_pix_values, self.right_lane.y_pix_values]
+                            [
+                                self.right_lane.x_pix_values_continuous,
+                                self.right_lane.y_pix_values_continuous,
+                            ]
                         )
                     )
                 )
@@ -107,12 +115,14 @@ class AnnotateFrame:
         pts = np.hstack((pts_left, pts_right))
         cv2.fillPoly(lane_img, np.int_([pts]), self.road_region_color)
 
-        # blend the lane image onto original image
-        blended_warp = cv2.addWeighted(self.img_warped, 1, lane_img, 0.3, 0)
-        # transform birds eye view back to normal
-        blended_img = self.perspective_transformer.birdeye_to_normal_transform(
-            blended_warp
+        # transform lane image in birds eye view back to normal
+        lane_img_unwarp = self.perspective_transformer.birdeye_to_normal_transform(
+            lane_img
         )
+
+        # blend the lane image onto original image
+        blended_img = cv2.addWeighted(self.image_original, 1, lane_img_unwarp, 0.5, 0)
+
         return blended_img
 
     def lane_info(self):
@@ -133,7 +143,9 @@ class AnnotateFrame:
         ) / 2
 
         # calculate deviation
-        deviation_meters = round(abs(vehicle_center - lane_center), 2)
+        deviation_meters = round(
+            abs(vehicle_center - lane_center) * LaneDetection.X_METERS_PER_PIX, 2
+        )
         deviation = (
             f"Left {deviation_meters} m"
             if vehicle_center > lane_center
@@ -220,7 +232,7 @@ class AnnotateFrame:
         # deviation
         cv2.putText(
             self.lane_fitted_img,
-            "Deviation from center: {}m".format(deviation),
+            "Deviation: {}".format(deviation),
             (860, 200),
             font,
             0.9,
