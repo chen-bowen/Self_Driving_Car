@@ -136,16 +136,3 @@ class ColorFiltering:
         # apply the mask over the image
         combined_filter = np.logical_or(s_filter, r_filter)
         return combined_filter
-
-
-class MorphologyFiltering:
-    def __init__(self, kernel_size=(5, 5)):
-        self.kernel_size = kernel_size
-
-    def get_kernel(self):
-        return np.ones(self.kernel_size, np.uint8)
-
-    def apply_morphology_filter(self, binary_img):
-        """apply a light morphology to "fill the gaps" in the binary image"""
-        kernel = self.get_kernel()
-        return cv2.morphologyEx(binary_img.astype(np.uint8), cv2.MORPH_CLOSE, kernel)

@@ -1,6 +1,6 @@
 from src.perspective import Calibration
 from src.line import Line, LaneDetection
-from src.filters import ColorFiltering, GradientFiltering, MorphologyFiltering
+from src.filters import ColorFiltering, GradientFiltering
 from src.annotate import AnnotateFrame
 import numpy as np
 import cv2
@@ -17,7 +17,6 @@ class LaneDetectionPipeline:
             direction_threshold=(0.7, 1.3),
         ),
         color_params=dict(s_thresholds=(150, 255), r_thresholds=(200, 255)),
-        morph_params=dict(kernel_size=(5, 5)),
         lane_detect_params=dict(
             num_windows=9,
             window_margin=50,
@@ -33,16 +32,21 @@ class LaneDetectionPipeline:
     ):
         self.gradient_params = gradient_params
         self.color_params = color_params
-        self.morph_params = morph_params
         self.lane_detect_params = lane_detect_params
         self.annotate_params = annotate_params
         self.num_processed_frames = 0
         self.set_lane_objects(line_object_params["cache_size"])
+        self.set_calibration()
 
     def set_lane_objects(self, cache_size):
         """ Define global line objects """
         self.left_lane = Line(cache_size=cache_size)
         self.right_lane = Line(cache_size=cache_size)
+
+    def set_calibration(self):
+        """ Set the calibration camera once"""
+        self.perspective_transformer = Calibration()
+        self.perspective_transformer.set_calibration()
 
     def process_frame(self, img):
         """ pipeline that process and annotate a single frame """
@@ -58,21 +62,16 @@ class LaneDetectionPipeline:
         # combine gradient and color filter
         combined_filtered_image = np.logical_or(
             color_filtered_img, gradient_filtered_img
-        )
+        ).astype(np.uint8)
 
-        # apply morphology filter
-        morph = MorphologyFiltering(**self.morph_params)
-        moprhed_image = morph.apply_morphology_filter(combined_filtered_image)
-
-        # calibrate the carmera
-        perspective_transformer = Calibration()
-        perspective_transformer.set_calibration()
         # undistort and convert image to bird's eye view
-        birdeye_filtered_img = perspective_transformer.undistort_and_birdeye_transform(
-            moprhed_image
+        birdeye_filtered_img = (
+            self.perspective_transformer.undistort_and_birdeye_transform(
+                combined_filtered_image
+            )
         )
-        birdeye_original_img = perspective_transformer.undistort_and_birdeye_transform(
-            img
+        birdeye_original_img = (
+            self.perspective_transformer.undistort_and_birdeye_transform(img)
         )
 
         # detect lanes
@@ -89,11 +88,11 @@ class LaneDetectionPipeline:
             img_assets=[
                 img,
                 birdeye_original_img,
-                moprhed_image,
+                combined_filtered_image,
                 birdeye_filtered_img,
                 img_fit,
             ],
-            perspective_transformer=perspective_transformer,
+            perspective_transformer=self.perspective_transformer,
             **self.annotate_params,
         )
         # produce the final blended frame

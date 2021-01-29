@@ -75,8 +75,6 @@ class Calibration:
 
     def undistort_image(self, img):
         """ undistort the input image using calibrated camera """
-        # set camera calibration
-        self.set_calibration()
         # undistort image
         undistored_image = cv2.undistort(img, self.mtx, self.dist, None, self.mtx)
 

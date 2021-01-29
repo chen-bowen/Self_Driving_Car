@@ -49,36 +49,6 @@ class AnnotateFrame:
         # create base image
         lane_img = np.zeros_like(self.img_warped)
 
-        # draw green polygon over the image
-        pts_left = np.array(
-            [
-                np.transpose(
-                    np.vstack(
-                        [
-                            self.left_lane.x_pix_values_continuous,
-                            self.left_lane.y_pix_values_continuous,
-                        ]
-                    )
-                )
-            ]
-        )
-        pts_right = np.array(
-            [
-                np.flipud(
-                    np.transpose(
-                        np.vstack(
-                            [
-                                self.right_lane.x_pix_values_continuous,
-                                self.right_lane.y_pix_values_continuous,
-                            ]
-                        )
-                    )
-                )
-            ]
-        )
-        pts = np.hstack((pts_left, pts_right))
-        cv2.fillPoly(lane_img, np.int_([pts]), self.road_region_color)
-
         # draw left and right lanes
         for i in range(len([self.left_lane, self.right_lane])):
             lane = [self.left_lane, self.right_lane][i]
@@ -114,6 +84,36 @@ class AnnotateFrame:
             pts = np.hstack((pts_l, pts_r))
             # draw line back onto base image
             cv2.fillPoly(lane_img, np.int32([pts]), self.lane_colors[i])
+
+        # draw green polygon over the image
+        pts_left = np.array(
+            [
+                np.transpose(
+                    np.vstack(
+                        [
+                            self.left_lane.x_pix_values_continuous,
+                            self.left_lane.y_pix_values_continuous,
+                        ]
+                    )
+                )
+            ]
+        )
+        pts_right = np.array(
+            [
+                np.flipud(
+                    np.transpose(
+                        np.vstack(
+                            [
+                                self.right_lane.x_pix_values_continuous,
+                                self.right_lane.y_pix_values_continuous,
+                            ]
+                        )
+                    )
+                )
+            ]
+        )
+        pts = np.hstack((pts_left, pts_right))
+        cv2.fillPoly(lane_img, np.int_([pts]), self.road_region_color)
 
         # transform lane image in birds eye view back to normal
         lane_img_unwarp = self.perspective_transformer.birdeye_to_normal_transform(
