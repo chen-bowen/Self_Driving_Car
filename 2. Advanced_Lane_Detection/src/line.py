@@ -5,7 +5,7 @@ import numpy as np
 class Line:
     """"Lane line object"""
 
-    def __init__(self):
+    def __init__(self, cache_size=15):
         # indicator of whether the lane was detected in the last frame
         self.detected = False
         # polynomial coefficients of the last n fits of the line in pixel unit/meters
@@ -21,8 +21,8 @@ class Line:
         self.x_pix_values_continuous = None
         # y values for fitted solid line
         self.y_pix_values_continuous = None
-        # window margin attribute for ease of access
-        self.window_margin = 50
+        # cache size
+        self.cache_size = cache_size
 
     @property
     def radius_of_curvature_in_pixels(self):
@@ -30,7 +30,8 @@ class Line:
         # get y value of at the bottom of the image
         y = np.max(self.y_pix_values)
         # find a, b, c coefficients by averating the past fitted coefficients
-        a, b, c = np.mean(self.recent_fitted_coeffs_in_pix, axis=0)
+
+        a, b, c = np.mean(self.recent_fitted_coeffs_in_pix[-self.cache_size :], axis=0)
         return ((1 + (2 * a * y + b) ** 2) ** 1.5) / np.absolute(2 * a)
 
     @property
@@ -39,7 +40,9 @@ class Line:
         # get y value of at the bottom of the image
         y = np.max(self.y_pix_values)
         # convert coefficient values in pixels to meters
-        a, b, c = np.mean(self.recent_fitted_coeffs_in_meters, axis=0)
+        a, b, c = np.mean(
+            self.recent_fitted_coeffs_in_meters[-self.cache_size :], axis=0
+        )
         return ((1 + (2 * a * y + b) ** 2) ** 1.5) / np.absolute(2 * a)
 
 
@@ -56,16 +59,16 @@ class LaneDetection:
         window_margin=50,
         min_pixels=50,
         fit_tolerance=100,
-        cache_size=15,
+        left_lane=Line(),
+        right_lane=Line(),
     ):
         self.img = img
         self.num_windows = num_windows  # number of sliding windows
         self.window_margin = window_margin  # width of sliding windows
         self.min_pixels = min_pixels  # minimum number of pixels found in a window
         self.fit_tolerance = fit_tolerance  # margin for refit of lane lines
-        self.cache_size = cache_size  # number of previously fitted coefficients kept
-        self.left_lane = Line()  # instantiate left and right lane objects
-        self.right_lane = Line()
+        self.left_lane = left_lane  # instantiate left and right lane objects
+        self.right_lane = right_lane
 
     def get_lane_start_location(self):
         """
@@ -133,7 +136,8 @@ class LaneDetection:
                 x[lane_inds],
                 y[lane_inds],
             )
-            # update line status detected to be true
+
+            # update detected status to be true
             lane.detected = True
 
     def get_line_search_prior(self):
@@ -149,6 +153,7 @@ class LaneDetection:
 
         # get fitted coefficients from previous fitted frames
         for lane in [self.left_lane, self.right_lane]:
+
             lane_inds = []
             a, b, c = lane.recent_fitted_coeffs_in_pix[-1]
             # Set the area of search based on nonzero x-values within the +/- tolerance of the polynomial function
@@ -192,7 +197,7 @@ class LaneDetection:
                 + c
             )
 
-    def detect(self):
+    def detect(self, num_processed_frames):
         """
         method that detect lines,
         if previously no line was detected, use sliding window method,
@@ -202,7 +207,12 @@ class LaneDetection:
         # get the lane lines starting locations using histogram peaks method
         self.get_lane_start_location()
         # if don't have lane lines info, use sliding window method
-        if (self.left_lane.detected == False) or (self.right_lane.detected == False):
+
+        if (
+            num_processed_frames < 1
+            and self.left_lane.detected == False
+            and self.right_lane.detected == False
+        ):
             self.get_line_sliding_windows()
         # if have lane lines info, use prior search method
         else:
