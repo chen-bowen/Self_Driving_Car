@@ -6,7 +6,7 @@
 
 Continue with what was accomplished in project 1, a more robust software pipeline to identify the lane boundaries in a video will be created using Python and OpenCV. Starting from an image scene like below
 
-<img src="test_images/test3.jpg" width="800" height="500">
+<img src="ouput_images/original_img.jpg" width="800" height="500">
 
 After processing by the pipeline the same image will be annotated with lanes highlighted and drivable areas illumniated.
 
