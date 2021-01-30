@@ -3,6 +3,7 @@ import numpy as np
 import os
 import pickle
 import glob
+import matplotlib.pyplot as plt
 
 
 class Calibration:
@@ -73,14 +74,20 @@ class Calibration:
 
         pickle.dump(dist_pickle, open(self.cal_model_dir, "wb"))
 
-    def undistort_image(self, img):
+    def undistort_image(self, img, save_ouput=False):
         """ undistort the input image using calibrated camera """
         # undistort image
         undistored_image = cv2.undistort(img, self.mtx, self.dist, None, self.mtx)
 
+        if save_ouput:
+            # save output to output_images
+            plt.imsave(
+                "output_images/undistort_image.jpg", undistored_image, cmap="gray"
+            )
+
         return undistored_image
 
-    def perspective_transform_image(self, undistort_img):
+    def perspective_transform_image(self, undistort_img, save_ouput=False):
         """ Perform perspective transform on the input undistorted 2-D image """
 
         # define source points for the perspective transform
@@ -107,15 +114,22 @@ class Calibration:
         self.M_inverse = cv2.getPerspectiveTransform(dst, src)
         # Warp the image using OpenCV warpPerspective
         warped = cv2.warpPerspective(undistort_img, self.M, (w, h))
+
+        if save_ouput:
+            # save output image to output_images
+            plt.imsave(
+                "output_images/perspective_transform_image.jpg", warped, cmap="gray"
+            )
+
         # return warped image only found the object
         return warped
 
-    def undistort_and_birdeye_transform(self, img):
+    def undistort_and_birdeye_transform(self, img, save_ouput=False):
         """ return the undistort and perspective transform image """
         # undistort image
-        undistored_img = self.undistort_image(img)
+        undistored_img = self.undistort_image(img, save_ouput)
         # perspective transform the image
-        calibrated_image = self.perspective_transform_image(undistored_img)
+        calibrated_image = self.perspective_transform_image(undistored_img, save_ouput)
 
         return calibrated_image
 

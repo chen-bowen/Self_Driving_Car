@@ -155,7 +155,7 @@ class AnnotateFrame:
         )
         return lane_width, curvature, deviation
 
-    def blend_frame(self):
+    def blend_frame(self, save_ouput=False):
         """ blend multiple image assets onto the orginal image scene """
         # draw lane lines over the warped image
         self.lane_fitted_img = self.draw_lanes()
@@ -240,4 +240,10 @@ class AnnotateFrame:
             2,
             cv2.LINE_AA,
         )
+        if save_ouput:
+            # save to output_images
+            plt.imsave(
+                "output_images/annotated_scene.jpg", self.lane_fitted_img, cmap="gray"
+            )
+
         return self.lane_fitted_img

@@ -29,12 +29,14 @@ class LaneDetectionPipeline:
             road_region_color=(0, 255, 0),
         ),
         line_object_params=dict(cache_size=15),
+        save_output=False,
     ):
         self.gradient_params = gradient_params
         self.color_params = color_params
         self.lane_detect_params = lane_detect_params
         self.annotate_params = annotate_params
         self.num_processed_frames = 0
+        self.save_output = save_output
         self.set_lane_objects(line_object_params["cache_size"])
         self.set_calibration()
 
@@ -53,11 +55,11 @@ class LaneDetectionPipeline:
 
         # apply color filters
         color = ColorFiltering(**self.color_params)
-        color_filtered_img = color.apply_color_filter(img)
+        color_filtered_img = color.apply_color_filter(img, self.save_output)
 
         # apply gradient filters
         gradient = GradientFiltering(**self.gradient_params)
-        gradient_filtered_img = gradient.apply_gradient_filter(img)
+        gradient_filtered_img = gradient.apply_gradient_filter(img, self.save_output)
 
         # combine gradient and color filter
         combined_filtered_image = np.logical_or(
@@ -67,11 +69,13 @@ class LaneDetectionPipeline:
         # undistort and convert image to bird's eye view
         birdeye_filtered_img = (
             self.perspective_transformer.undistort_and_birdeye_transform(
-                combined_filtered_image
+                combined_filtered_image, self.save_output
             )
         )
         birdeye_original_img = (
-            self.perspective_transformer.undistort_and_birdeye_transform(img)
+            self.perspective_transformer.undistort_and_birdeye_transform(
+                img, self.save_output
+            )
         )
         # update lane caches
         self.left_lane.update_cache()
@@ -83,7 +87,7 @@ class LaneDetectionPipeline:
             left_lane=self.left_lane,
             right_lane=self.right_lane,
             **self.lane_detect_params,
-        ).detect(self.num_processed_frames)
+        ).detect(self.num_processed_frames, self.save_output)
         # annotate frame
         annotate = AnnotateFrame(
             left_lane,
@@ -99,7 +103,7 @@ class LaneDetectionPipeline:
             **self.annotate_params,
         )
         # produce the final blended frame
-        res_frame = annotate.blend_frame()
+        res_frame = annotate.blend_frame(self.save_output)
 
         # increment processed frames by 1
         self.num_processed_frames += 1
@@ -112,11 +116,10 @@ if __name__ == "__main__":
     for test_img in glob.glob("test_images/*.jpg"):
         img = cv2.imread(test_img)
         LaneDetectionPipeline(
-            img,
             gradient_params=dict(
                 sobel_kernel_size=3,
-                sobel_threshold=(50, 150),
-                magnitude_threshold=(30, 100),
+                sobel_threshold=(70, 100),
+                magnitude_threshold=(90, 255),
                 direction_threshold=(0.7, 1.3),
             ),
             color_params=dict(s_thresholds=(150, 255), r_thresholds=(200, 255)),
@@ -125,11 +128,12 @@ if __name__ == "__main__":
                 window_margin=50,
                 min_pixels=50,
                 fit_tolerance=100,
-                cache_size=15,
             ),
             annotate_params=dict(
                 line_width=50,
-                lane_color=(255, 0, 0),
+                lane_colors=[(0, 0, 255), (255, 0, 0)],
                 road_region_color=(0, 255, 0),
             ),
+            line_object_params=dict(cache_size=15),
+            save_output=True,
         ).process_frame(img)

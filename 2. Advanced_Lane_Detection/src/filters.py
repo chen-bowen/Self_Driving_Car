@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class GradientFiltering:
@@ -79,7 +80,7 @@ class GradientFiltering:
 
         return dir_binary
 
-    def apply_gradient_filter(self, image):
+    def apply_gradient_filter(self, image, save_output=False):
         """ Combine the 3 different thresholds """
         # get the 3 different thresholds
         gradx = self.abs_sobel_thresh(image, orient="x")
@@ -90,8 +91,16 @@ class GradientFiltering:
         # combine filters
         gradient_filters = np.logical_and(gradx, grady)
         mag_dir_filters = np.logical_and(mag_binary, dir_binary)
-        combined_filters = np.logical_or(gradient_filters, mag_dir_filters)
-        return combined_filters.astype(np.uint8)
+        combined_filters = np.logical_or(gradient_filters, mag_dir_filters).astype(
+            np.uint8
+        )
+
+        if save_output:
+            # save intermediate output to output_images
+            plt.imsave(
+                "output_images/gradient_filter.jpg", combined_filters, cmap="gray"
+            )
+        return combined_filters
 
 
 class ColorFiltering:
@@ -127,7 +136,7 @@ class ColorFiltering:
         )
         return s_binary.astype(np.uint8)
 
-    def apply_color_filter(self, img):
+    def apply_color_filter(self, img, save_output=False):
         """ Applies the white and yellow color mask over image """
         # s channel filter
         s_filter = self.s_channel_filter(img)
@@ -135,4 +144,9 @@ class ColorFiltering:
         r_filter = self.r_channel_filter(img)
         # apply the mask over the image
         combined_filter = np.logical_or(s_filter, r_filter)
+
+        if save_output:
+            # save intermediate output to output_images
+            plt.imsave("output_images/color_filter.jpg", combined_filter, cmap="gray")
+
         return combined_filter

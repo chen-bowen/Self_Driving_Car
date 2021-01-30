@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class Line:
@@ -212,7 +213,7 @@ class LaneDetection:
                 + c
             )
 
-    def detect(self, num_processed_frames):
+    def detect(self, num_processed_frames, save_output=False):
         """
         method that detect lines,
         if previously no line was detected, use sliding window method,
@@ -244,4 +245,11 @@ class LaneDetection:
         annotated_img[
             list(self.right_lane.y_pix_values), list(self.right_lane.x_pix_values)
         ] = [255, 0, 0]
+
+        if save_output:
+            # save intermediate output to output_images
+            plt.imsave(
+                "output_images/annotated_lane_img.jpg", annotated_img, cmap="gray"
+            )
+
         return self.left_lane, self.right_lane, annotated_img
