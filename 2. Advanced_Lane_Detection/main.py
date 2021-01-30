@@ -3,7 +3,8 @@ from src.line import Line, LaneDetection
 from src.filters import ColorFiltering, GradientFiltering
 from src.annotate import AnnotateFrame
 import numpy as np
-import cv2
+import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
 import glob
 
 
@@ -114,7 +115,8 @@ class LaneDetectionPipeline:
 if __name__ == "__main__":
     # process all images in test folder
     for test_img in glob.glob("test_images/*.jpg"):
-        img = cv2.imread(test_img)
+        img = mpimg.imread(test_img)
+        plt.imsave("output_images/original_img.jpg", img)
         LaneDetectionPipeline(
             gradient_params=dict(
                 sobel_kernel_size=3,
