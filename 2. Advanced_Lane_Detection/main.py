@@ -73,6 +73,9 @@ class LaneDetectionPipeline:
         birdeye_original_img = (
             self.perspective_transformer.undistort_and_birdeye_transform(img)
         )
+        # update lane caches
+        self.left_lane.update_cache()
+        self.right_lane.update_cache()
 
         # detect lanes
         left_lane, right_lane, img_fit = LaneDetection(

@@ -18,11 +18,23 @@ class Line:
         # y values for detected line pixels
         self.y_pix_values = None
         # x values for fitted solid line
-        self.x_pix_values_continuous = None
+        self.x_pix_values_continuous_list = []
         # y values for fitted solid line
         self.y_pix_values_continuous = None
         # cache size
         self.cache_size = cache_size
+
+    def update_cache(self):
+        """ Update cache properties """
+        self.recent_fitted_coeffs_in_pix = self.recent_fitted_coeffs_in_pix[
+            -self.cache_size :
+        ]
+        self.recent_fitted_coeffs_in_meters = self.recent_fitted_coeffs_in_pix[
+            -self.cache_size :
+        ]
+        self.x_pix_values_continuous_list = self.x_pix_values_continuous_list[
+            -self.cache_size :
+        ]
 
     @property
     def radius_of_curvature_in_pixels(self):
@@ -31,7 +43,7 @@ class Line:
         y = np.max(self.y_pix_values)
         # find a, b, c coefficients by averating the past fitted coefficients
 
-        a, b, c = np.mean(self.recent_fitted_coeffs_in_pix[-self.cache_size :], axis=0)
+        a, b, c = np.mean(self.recent_fitted_coeffs_in_pix, axis=0)
         return ((1 + (2 * a * y + b) ** 2) ** 1.5) / np.absolute(2 * a)
 
     @property
@@ -40,10 +52,13 @@ class Line:
         # get y value of at the bottom of the image
         y = np.max(self.y_pix_values)
         # convert coefficient values in pixels to meters
-        a, b, c = np.mean(
-            self.recent_fitted_coeffs_in_meters[-self.cache_size :], axis=0
-        )
+        a, b, c = np.mean(self.recent_fitted_coeffs_in_meters, axis=0)
         return ((1 + (2 * a * y + b) ** 2) ** 1.5) / np.absolute(2 * a)
+
+    @property
+    def x_pix_values_continuous(self):
+        """ Property that finds the average of x pixel values """
+        return np.mean(self.x_pix_values_continuous_list, axis=0)
 
 
 class LaneDetection:
@@ -191,7 +206,7 @@ class LaneDetection:
                 0, self.img.shape[0] - 1, self.img.shape[0]
             )
             a, b, c = lane.recent_fitted_coeffs_in_pix[-1]
-            lane.x_pix_values_continuous = (
+            lane.x_pix_values_continuous_list.append(
                 a * (lane.y_pix_values_continuous ** 2)
                 + b * lane.y_pix_values_continuous
                 + c
