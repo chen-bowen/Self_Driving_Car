@@ -2,13 +2,15 @@
 
 <img src="examples/lane_detection.gif" width="800" height="500">
 
+### Project Overview
+
 Continue with what was accomplished in project 1, a more robust software pipeline to identify the lane boundaries in a video will be created using Python and OpenCV. Starting from an image scene like below
 
 <img src="test_images/test3.jpg" width="800" height="500">
 
 After processing by the pipeline the same image will be annotated with lanes highlighted and drivable areas illumniated.
 
-<img src="test_images/full_transform_test3.jpg" width="800" height="500">
+<img src="ouput_images/annotated_scene.jpg" width="800" height="500">
 
 We will then apply the same pipeline to all scenes as the car drives down the road.
 
