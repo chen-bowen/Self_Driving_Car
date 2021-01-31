@@ -83,7 +83,7 @@ Restricing magnitudes of the image's gradient could also be helpful in emphasizi
 magnitude filters produced a smoothed binary image that could help connecting the small segments that could help detecting lane lines. Combining the the gradient filters produced a binary image for the oringinal scene like the following
 
 <p align="center">
-    <img src="output_images/gradient_filter.png" width="800" height="500">
+    <img src="output_images/gradient_filter.jpg" width="800" height="500">
 </p>
 
 The color filters and gradient filters will be combined with a logical or gate to pick up as much lane information as possible. The relevant module for building this gradient filter is in `filters.py`
@@ -96,6 +96,42 @@ Chessboard 1 Original       |  Chessboard 1 Undistorted
 :-------------------------:|:-------------------------:
 <img src="camera_cal/calibration1.jpg" width="500" height="300"> | <img src="output_images/camera_cal_1_undistort.jpg" width="500" height="300">
 
-The images in `test_images` are for testing your pipeline on single frames.  If you want to extract more test images from the videos, you can simply use an image writing method like `cv2.imwrite()`, i.e., you can read the video in frame by frame as usual, and for frames you want to save for later you can write to an image file. 
+Once the camera is properly calibrated, the distortion matrix and coefficients could be used to calibrate the real road scene.
+
+Road Scene Original       |  Road Scene Undistorted 
+:-------------------------:|:-------------------------:
+<img src="output_images/original_img.jpg" width="500" height="300"> | <img src="output_images/undistort_image.jpg" width="500" height="300">
+
+### Birdeye Transform
+
+As objects appear larger when they are closer, directly taking measurements of the road using the images taken by the car's front camera will result in erroneuous values. The best way to normalize the effect is looking at the scene from a birdeye view. Using the birdeye view also served as a road-only filter as it crops out the extra irrelevant objects around the scene that were picked up by the previous color and gradient filters. CV2 also provided a convenient method to accomplish such goal - `getPerspectiveTransform`. The method requires source and destination points to be properly defined. Same as the previous project, the region of interest is the polygon right in front of the car, which will help define the src points for the perspective transformation. 
+
+<p align="center">
+    <img src="examples/canny.jpg" width="800" height="500">
+</p>
+ 
+
+To be specific, if the height and width of the image is h and w respectively, the source points (defined empirically) are 
+
+```python
+
+src = np.float32(
+    [
+        [w, h - 10],  # bottom right
+        [0, h - 10],  # bottom left
+        [546, 460],  # top left, lane top left corner from polygon
+        [732, 460],  # top right, lane top right corner from polygon
+    ]
+)
+
+```
+
+The destination points will simply be the 4 corners of an image that is the same as the input image.
+
+After the perspective transform, the image will become the following 
+
+<p align="center">
+    <img src="output_images/perspective_transform_image.jpg" width="800" height="500">
+</p>
  
 
