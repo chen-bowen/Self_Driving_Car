@@ -49,7 +49,7 @@ By restricting the gradient of the image of a single direction, lane objects cou
 
 Gradient X          |  Gradient Y
 :-------------------------:|:-------------------------:
-<img src="examples/sobel_X.png" width="400" height="250"> | <img src="examples/sobel_Y.png" width="400" height="250">
+<img src="examples/Sobel_X.png" width="400" height="250"> | <img src="examples/Sobel_Y.png" width="400" height="250">
 
 ### Camera Calibration
 
