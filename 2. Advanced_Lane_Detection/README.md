@@ -233,3 +233,6 @@ The processed video could be found this [link](https://youtu.be/iDexx8XgdiY).
 
 ### Discussion 
 
+* **Color filtering is crucial** - From the varying colors of the road tiles, the proper usage of color filtering will enable the algorithm to consistently see the lane lines and record the correct lane line pixels. With the current settings of the color filtering we will be able to identify lanes on most of the road conditions with consistent lighting. If the algorithm is to be more robust against tougher conditions, more variations of color filtering needs to be applied (for example LAB color spaces).
+
+* **Usage of averaging enabled a smoothened lane marking** - tracking previously fitted coefficients with object-oriented design of the software pipeline enables the averaging across the past n fitted coefficients, producing a more stable lane and driving regions marking. However, this technique will only work under the assumptions of the absence of extreme zigzag shape of road - with rapid directional change in line slopes, the average smoothing will make the lane markings slower to adjust to the new conditions.
