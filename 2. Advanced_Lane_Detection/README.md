@@ -1,16 +1,26 @@
 ## Advanced Lane Finding
 
-<img src="examples/lane_detection.gif" width="800" height="500">
+<p align="center">
+  <img src="examples/lane_detection.gif" width="800" height="500">
+</p>
 
+##
 ### Project Overview
 
 Continue with what was accomplished in project 1, a more robust software pipeline to identify the lane boundaries in a video will be created using Python and OpenCV. Starting from an image scene like below
 
-<img src="output_images/original_img.jpg" width="800" height="500">
+<p align="center">
+  <img src="output_images/original_img.jpg" width="800" height="500">
+</p>
+
 
 After processing by the pipeline the same image will be annotated with lanes highlighted and drivable areas illumniated.
 
-<img src="output_images/annotated_scene.jpg" width="800" height="500">
+
+<p align="center">
+  <img src="output_images/annotated_scene.jpg" width="800" height="500">
+</p>
+
 
 We will then apply the same pipeline to all scenes as the car drives down the road.
 
@@ -32,24 +42,35 @@ The whole pipeline was developed in object oriented programming of 6 different c
 
 Using the HSV space filter, the noise of the image will be remnoved with the lanes singled out. By separating the image's R, G, B channel, it is evident that R channel (red) has some solid abilities to pick up the left lane
 
-<img src="examples/r_filter.png" width="800" height="500">
+<p align="center">
+  <img src="examples/r_filter.png" width="800" height="500">
+</p>
+
 
 To strengthen that effect, the image in HSV color space's s channel (saturation) also does a great job for picking out the left lane. 
 
-<img src="examples/s_filter.png" width="800" height="500">
+<p align="center">
+  <img src="examples/s_filter.png" width="800" height="500">
+</p>
+
 
 Using an or logic gate could allow 2 filters to cover up each other's mistakes. The combined filter produced a binary filter that is specialized in finding the left lane. The combined filtering effect is shown below
 
-<img src="output_images/color_filter.jpg" width="800" height="500">
+<p align="center">
+  <img src="output_images/color_filter.jpg" width="800" height="500">
+</p>
 
 
 ### Gradient Filtering
 
 By restricting the gradient of the image of a single direction, lane objects could be emphasized in the resulting binary image. For example, restricting gradient in x and y direction will result in image binaries like the following
 
-Gradient X          |  Gradient Y
-:-------------------------:|:-------------------------:
-<img src="examples/Sobel_X.png" width="400" height="250"> | <img src="examples/Sobel_Y.png" width="400" height="250">
+<p align="center">
+    Gradient X          |  Gradient Y
+    :-------------------------:|:-------------------------:
+    <img src="examples/Sobel_X.png" width="400" height="250"> | <img src="examples/Sobel_Y.png" width="400" height="250">
+</p>
+
 
 ### Camera Calibration
 
