@@ -84,16 +84,10 @@ class GradientFiltering:
         """ Combine the 3 different thresholds """
         # get the 3 different thresholds
         gradx = self.abs_sobel_thresh(image, orient="x")
-        grady = self.abs_sobel_thresh(image, orient="y")
         mag_binary = self.mag_threshold(image)
-        dir_binary = self.dir_threshold(image)
 
         # combine filters
-        gradient_filters = np.logical_and(gradx, grady)
-        mag_dir_filters = np.logical_and(mag_binary, dir_binary)
-        combined_filters = np.logical_or(gradient_filters, mag_dir_filters).astype(
-            np.uint8
-        )
+        combined_filters = np.logical_or(gradx, mag_binary).astype(np.uint8)
 
         if save_output:
             # save intermediate output to output_images

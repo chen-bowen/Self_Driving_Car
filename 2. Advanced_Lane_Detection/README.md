@@ -60,6 +60,7 @@ Using an or logic gate could allow 2 filters to cover up each other's mistakes. 
   <img src="output_images/color_filter.jpg" width="800" height="500">
 </p>
 
+The relevant module for building this filters is in `filters.py`
 
 ### Gradient Filtering
 
@@ -70,19 +71,30 @@ Gradient X          |  Gradient Y
 :-------------------------:|:-------------------------:
 <img src="examples/Sobel_X.png" width="500" height="300"> | <img src="examples/Sobel_Y.png" width="500" height="300">
 
+Gradient on y direction specializes in detecting lines in horizontal direction, since lane lines are mostly vertical in the scenes, only gradient x filter is used.
+
 
 Restricing magnitudes of the image's gradient could also be helpful in emphasizing lane lines. Applying a magnitude filter will result in a binary image like the following
-
 
 <p align="center">
     <img src="examples/magnitude.png" width="800" height="500">
 </p>
 
+magnitude filters produced a smoothed binary image that could help connecting the small segments that could help detecting lane lines. Combining the the gradient filters produced a binary image for the oringinal scene like the following
 
+<p align="center">
+    <img src="output_images/gradient_filter.png" width="800" height="500">
+</p>
 
-### Camera Calibration
+The color filters and gradient filters will be combined with a logical or gate to pick up as much lane information as possible. The relevant module for building this gradient filter is in `filters.py`
 
-The images for camera calibration are stored in the folder called `camera_cal`.  
+### Camera Calibration and Image Undistortion
+
+To properly undistort the images and make the measurements of the road robust, the images taken by a certain camera needs to be properly calibrated. CV2 has provided a convient way of calibrating the camera using chessboard images. The images for camera calibration are stored in the folder called `camera_cal`. By sequentially feeding images into cv2's `findChessboardCorners` method, the object and image points can be obtained and used for the cv2's `calibrateCamera` method. For example, after undistortion, the effect on one of the chessboards is the following
+
+Chessboard 1 Original       |  Chessboard 1 Undistorted 
+:-------------------------:|:-------------------------:
+<img src="camera_cal/calibration1.jpg" width="500" height="300"> | <img src="output_images/camera_cal_1_undistort.jpg" width="500" height="300">
 
 The images in `test_images` are for testing your pipeline on single frames.  If you want to extract more test images from the videos, you can simply use an image writing method like `cv2.imwrite()`, i.e., you can read the video in frame by frame as usual, and for frames you want to save for later you can write to an image file. 
  

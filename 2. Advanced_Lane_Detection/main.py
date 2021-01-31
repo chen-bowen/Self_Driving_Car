@@ -113,29 +113,39 @@ class LaneDetectionPipeline:
 
 
 if __name__ == "__main__":
+    from moviepy.editor import VideoFileClip
+
     # process all images in test folder
-    for test_img in glob.glob("test_images/*.jpg"):
-        img = mpimg.imread(test_img)
-        plt.imsave("output_images/original_img.jpg", img)
-        LaneDetectionPipeline(
-            gradient_params=dict(
-                sobel_kernel_size=3,
-                sobel_threshold=(70, 100),
-                magnitude_threshold=(90, 255),
-                direction_threshold=(0.7, 1.3),
-            ),
-            color_params=dict(s_thresholds=(150, 255), r_thresholds=(200, 255)),
-            lane_detect_params=dict(
-                num_windows=9,
-                window_margin=50,
-                min_pixels=50,
-                fit_tolerance=100,
-            ),
-            annotate_params=dict(
-                line_width=50,
-                lane_colors=[(0, 0, 255), (255, 0, 0)],
-                road_region_color=(0, 255, 0),
-            ),
-            line_object_params=dict(cache_size=15),
-            save_output=True,
-        ).process_frame(img)
+    test_img = glob.glob("test_images/*.jpg")[-1]
+    img = mpimg.imread(test_img)
+    plt.imsave("output_images/original_img.jpg", img)
+    lane_detect = LaneDetectionPipeline(
+        gradient_params=dict(
+            sobel_kernel_size=3,
+            sobel_threshold=(70, 150),
+            magnitude_threshold=(70, 255),
+            direction_threshold=(0.7, 1.3),
+        ),
+        color_params=dict(s_thresholds=(150, 255), r_thresholds=(200, 255)),
+        lane_detect_params=dict(
+            num_windows=9,
+            window_margin=50,
+            min_pixels=50,
+            fit_tolerance=100,
+        ),
+        annotate_params=dict(
+            line_width=50,
+            lane_colors=[(0, 0, 255), (255, 0, 0)],
+            road_region_color=(0, 255, 0),
+        ),
+        line_object_params=dict(cache_size=15),
+        save_output=True,
+    )
+    lane_detect.process_frame(img)
+
+    # produce an annotated video
+    lane_detect.save_output = False
+    vid_output = "test_videos_output/project_video.mp4"
+    clip1 = VideoFileClip("test_videos/project_video.mp4")
+    project_clip = clip1.fl_image(lane_detect.process_frame)
+    project_clip.write_videofile(vid_output, audio=False)
