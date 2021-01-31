@@ -30,10 +30,22 @@ The whole pipeline was developed in object oriented programming of 6 different c
 
 ### Color Filtering
 
-Using the HSV space filter, the noise of the image 
+Using the HSV space filter, the noise of the image will be remnoved with the lanes singled out. By separating the image's R, G, B channel, it is evident that R channel (red) has some solid abilities to pick up the left lane
+
+<img src="examples/r_filter.png" width="800" height="500">
+
+To strengthen that effect, the image in HSV color space's s channel (saturation) also does a great job for picking out the left lane. 
+
+<img src="examples/s_filter.png" width="800" height="500">
+
+Using an or logic gate could allow 2 filters to cover up each other's mistakes. The combined filter effect is shown below
+
+<img src="output_images/color_filter.png" width="800" height="500">
+
+### Camera Calibration
 
 The images for camera calibration are stored in the folder called `camera_cal`.  
 
-The images in `test_images` are for testing your pipeline on single frames.  If you want to extract more test images from the videos, you can simply use an image writing method like `cv2.imwrite()`, i.e., you can read the video in frame by frame as usual, and for frames you want to save for later you can write to an image file.  
+The images in `test_images` are for testing your pipeline on single frames.  If you want to extract more test images from the videos, you can simply use an image writing method like `cv2.imwrite()`, i.e., you can read the video in frame by frame as usual, and for frames you want to save for later you can write to an image file. 
  
 
