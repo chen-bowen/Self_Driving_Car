@@ -40,7 +40,7 @@ To strengthen that effect, the image in HSV color space's s channel (saturation)
 
 Using an or logic gate could allow 2 filters to cover up each other's mistakes. The combined filter produced a binary filter that is specialized in finding the left lane. The combined filtering effect is shown below
 
-<img src="ooutput_images/color_filter.jpg" width="800" height="500">
+<img src="output_images/color_filter.jpg" width="800" height="500">
 
 
 ### Gradient Filtering
