@@ -65,11 +65,10 @@ Using an or logic gate could allow 2 filters to cover up each other's mistakes. 
 
 By restricting the gradient of the image of a single direction, lane objects could be emphasized in the resulting binary image. For example, restricting gradient in x and y direction will result in image binaries like the following
 
-<center>
-    Gradient X          |  Gradient Y
-    :-------------------------:|:-------------------------:
-    <img src="examples/Sobel_X.png" width="400" height="250"> | <img src="examples/Sobel_Y.png" width="400" height="250">
-</center>
+
+Gradient X          |  Gradient Y
+:-------------------------:|:-------------------------:
+<img src="examples/Sobel_X.png" width="500" height="300"> | <img src="examples/Sobel_Y.png" width="500" height="300">
 
 
 
