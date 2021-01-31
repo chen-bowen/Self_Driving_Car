@@ -71,6 +71,13 @@ Gradient X          |  Gradient Y
 <img src="examples/Sobel_X.png" width="500" height="300"> | <img src="examples/Sobel_Y.png" width="500" height="300">
 
 
+Restricing magnitudes of the image's gradient could also be helpful in emphasizing lane lines. Applying a magnitude filter will result in a binary image like the following
+
+
+<p align="center">
+    <img src="examples/magnitude.png" width="800" height="500">
+</p>
+
 
 
 ### Camera Calibration
