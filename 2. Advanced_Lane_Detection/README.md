@@ -38,9 +38,18 @@ To strengthen that effect, the image in HSV color space's s channel (saturation)
 
 <img src="examples/s_filter.png" width="800" height="500">
 
-Using an or logic gate could allow 2 filters to cover up each other's mistakes. The combined filter effect is shown below
+Using an or logic gate could allow 2 filters to cover up each other's mistakes. The combined filter produced a binary filter that is specialized in finding the left lane. The combined filtering effect is shown below
 
-<img src="output_images/color_filter.png" width="800" height="500">
+<img src="ooutput_images/color_filter.jpg" width="800" height="500">
+
+
+### Gradient Filtering
+
+By restricting the gradient of the image of a single direction, lane objects could be emphasized in the resulting binary image. For example, restricting gradient in x and y direction will result in image binaries like the following
+
+Gradient X          |  Gradient Y
+:-------------------------:|:-------------------------:
+<img src="examples/sobel_X.png" width="400" height="250"> | <img src="examples/sobel_Y.png" width="400" height="250">
 
 ### Camera Calibration
 
