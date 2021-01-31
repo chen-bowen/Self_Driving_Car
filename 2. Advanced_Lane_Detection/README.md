@@ -86,7 +86,7 @@ magnitude filters produced a smoothed binary image that could help connecting th
     <img src="output_images/gradient_filter.jpg" width="800" height="500">
 </p>
 
-The color filters and gradient filters will be combined with a logical or gate to pick up as much lane information as possible. The relevant module for building this gradient filter is in `filters.py`
+The color filters and gradient filters will be combined with a logical or gate to pick up as much lane information as possible. The relevant module for building this gradient filter is in `filters.py`, returning the respective filtered binary image array.
 
 ### Camera Calibration and Image Undistortion
 
@@ -134,4 +134,95 @@ After the perspective transform, the image will become the following
     <img src="output_images/perspective_transform_image.jpg" width="800" height="500">
 </p>
  
+With the image mostly containing only the lanes, it is now ready for further line detections. The undistort and birdeye transform is then combined as 1 method defined in `perspective.py`, returning the processed image array at the end.
+
+### Lane Detection
+
+To save some of the parameters recently obtained from fitting the previous frames, the line could be defined as a single object that contains multiple attributes. Recently fitted coefficients, base positions and line fit values in terms of x and y. Specifically, upon instantiation, the following attributes are defined.
+
+```python
+class Line:
+    """"Lane line object"""
+
+    def __init__(self, cache_size=15):
+        # indicator of whether the lane was detected in the last frame
+        self.detected = False
+        # polynomial coefficients of the last n fits of the line in pixel unit/meters
+        self.recent_fitted_coeffs_in_pix = []
+        self.recent_fitted_coeffs_in_meters = []
+        # distance in meters of vehicle center from the line
+        self.line_base_pos = None
+        # x values for detected line pixels
+        self.x_pix_values = None
+        # y values for detected line pixels
+        self.y_pix_values = None
+        # x values for fitted solid line
+        self.x_pix_values_continuous_list = []
+        # y values for fitted solid line
+        self.y_pix_values_continuous = None
+        # cache size
+        self.cache_size = cache_size
+```
+
+Everytime a line segment is detected, the paramters in the Line object will be updated.
+
+**Sliding Window**
+
+Using the idea from integration, identifying small line segments in a small region will make the algorithm track any shape of line in the image. To start the base position will need to be identified in the image, then the small reagion will be located around the base position. By looking at the bottom half of the image, a histogram of values across x axis could be built, which will look like the following
+
+<p align="center">
+    <img src="examples/hist_peak.png" width="800" height="500">
+</p>
+ 
+ The lane lines base position will located at the peaks of the histogram diagram. Then the same sized bounding boxes will be slided across the height of the image, with non-zero indices saved as "identified line indices".
+
+ <p align="center">
+    <img src="examples/slide_window.png" width="800" height="500">
+</p>
+
+***Search from Priors***
+
+Performing the sliding window technique across all frames would be an expensive opreation, as lanes rarely changes its slopes and directions from frame to frame. Using the previously fitted polynomial coefficients, the pixel values that are within a margin will be collected as the new "identified line indices".
+
+Sliding window method will be used on the first frame while search from priors method will be used in all frames after. The detection algorithm and the line object are defined in the file `line.py`. The method `detect` produces 2 line objects with relvant coefficients fitted 
+
+### Annotate the Frames
+
+Gathering from the image assets produced in previous modules, the module puts everything together an produce a blended frame that is shown at the top. Left and right lanes are colored blue and red respectively, while the drivable regions are annotated in green. At the same time, the curvature and lane departure information is also calculated (see more information with [this post](https://www.intmath.com/applications-differentiation/8-radius-curvature.php) about curvature). The method `annotate` produces a blended image array, defined in `annotate.py`.
+
+### Putting everything together
+
+In `main.py`, the previously described steps were executed sequentially. The number of frames are also collected for the algorithm to choose between sliding window method and search from priors. The sample signature of the execution is shown as the following.
+
+```python
+lane_detect = LaneDetectionPipeline(
+    gradient_params=dict(
+        sobel_kernel_size=3,
+        sobel_threshold=(70, 150),
+        magnitude_threshold=(70, 255),
+        direction_threshold=(0.7, 1.3),
+    ),
+    color_params=dict(s_thresholds=(150, 255), r_thresholds=(200, 255)),
+    lane_detect_params=dict(
+        num_windows=9,
+        window_margin=50,
+        min_pixels=50,
+        fit_tolerance=100,
+    ),
+    annotate_params=dict(
+        line_width=50,
+        lane_colors=[(0, 0, 255), (255, 0, 0)],
+        road_region_color=(0, 255, 0),
+    ),
+    line_object_params=dict(cache_size=15),
+    save_output=True,
+)
+lane_detect.process_frame(img)
+```
+The sample processed image is shown as the following
+
+<p align="center">
+  <img src="output_images/annotated_scene.jpg" width="800" height="500">
+</p>
+
 

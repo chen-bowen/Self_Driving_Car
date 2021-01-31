@@ -144,8 +144,8 @@ if __name__ == "__main__":
     lane_detect.process_frame(img)
 
     # produce an annotated video
-    # lane_detect.save_output = False
-    # vid_output = "test_videos_output/project_video.mp4"
-    # clip1 = VideoFileClip("test_videos/project_video.mp4")
-    # project_clip = clip1.fl_image(lane_detect.process_frame)
-    # project_clip.write_videofile(vid_output, audio=False)
+    lane_detect.save_output = False
+    vid_output = "test_videos_output/project_video.mp4"
+    clip1 = VideoFileClip("test_videos/project_video.mp4")
+    project_clip = clip1.fl_image(lane_detect.process_frame)
+    project_clip.write_videofile(vid_output, audio=False)
