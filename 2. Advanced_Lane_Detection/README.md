@@ -171,7 +171,7 @@ Everytime a line segment is detected, the paramters in the Line object will be u
 Using the idea from integration, identifying small line segments in a small region will make the algorithm track any shape of line in the image. To start the base position will need to be identified in the image, then the small reagion will be located around the base position. By looking at the bottom half of the image, a histogram of values across x axis could be built, which will look like the following
 
 <p align="center">
-    <img src="examples/hist_peak.png" width="800" height="500">
+    <img src="examples/hist_peak.png" width="800" height="200">
 </p>
  
  The lane lines base position will located at the peaks of the histogram diagram. Then the same sized bounding boxes will be slided across the height of the image, with non-zero indices saved as "identified line indices".
@@ -225,4 +225,11 @@ The sample processed image is shown as the following
   <img src="output_images/annotated_scene.jpg" width="800" height="500">
 </p>
 
+The processed video could be found this [link](https://youtu.be/iDexx8XgdiY). 
+
+<p align="center">
+  <img src="examples/lane_detection.gif" width="800" height="500">
+</p>
+
+### Discussion 
 
