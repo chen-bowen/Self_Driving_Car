@@ -87,7 +87,7 @@ The dataset consists of 43 different classes that represents the following signs
 
 Though each class has relatively different distributions, the training and test set has similar % of distributions across these classes
 
- <p align="center">
+ <p align="left">
     <img src="examples/dataset_visualization.png" width="800" height="400">
 </p>
 
@@ -95,7 +95,7 @@ Model Architecture
 ---
 ### 1. Image Data Preprocessing
 
-Using the references from this medium post and Yann Lecun's paper, the image preprocessing was completed in the following 3 steps
+Using the references from this medium post and Yann Lecun's paper, the image preprocessing was completed in the following 4 steps
 
 1. Gaussian Blur on every single image - removes noise on edges of the inputing images
 
@@ -107,7 +107,7 @@ Using the references from this medium post and Yann Lecun's paper, the image pre
 
 An example of the images that get passed through this processing steps is the following
 
- <p align="center">
+ <p align="left">
     <img src="examples/sampel_data_augumentation.png" width="800" height="500">
 </p>
 
@@ -138,7 +138,7 @@ Maxpooling has been left out and replaced with dropouts to increased training sp
 
 The model summary is shown below
 
- <p align="center">
+ <p align="left">
     <img src="examples/model_summary.png" width="500" height="500">
 </p>
 
