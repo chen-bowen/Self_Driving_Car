@@ -88,8 +88,59 @@ The dataset consists of 43 different classes that represents the following signs
 Though each class has relatively different distributions, the training and test set has similar % of distributions across these classes
 
  <p align="center">
-    <img src="examples/visualization.png" width="800" height="400">
+    <img src="examples/dataset_visualization.png" width="800" height="400">
 </p>
 
 Model Architecture
 ---
+### 1. Image Data Preprocessing
+
+Using the references from this medium post and Yann Lecun's paper, the image preprocessing was completed in the following 3 steps
+
+1. Gaussian Blur on every single image - removes noise on edges of the inputing images
+
+2. Convert image from RGB to YUV color space and extract only the V channel - make images invariant across every color channel except for red
+
+3. Normalize pixel value ranges from 0 to 1 - avoids exploding / vanishing gradients while training the deep network
+
+4. Image augumentation (random rotation and zoom in/out) - force the neural network to learn exact patterns of the traffic signs regardless the angle its being presented
+
+An example of the images that get passed through this processing steps is the following
+
+ <p align="center">
+    <img src="examples/sampel_data_augumentation.png" width="800" height="500">
+</p>
+
+
+### 2. Model Architecture
+
+The model is implemented as a pipeline that starts from preprocessing images, 2 convolutional layers, 3 dropout layers and 2 fully connected layers. The model architecture details are shown below.
+
+| Layer         		|     Description / Output Size	        		| 
+|:---------------------:|:---------------------------------------------:| 
+| Input         		| 32 x 32 x 3 RGB image   						| 
+| Preprocess Images     | 32 x 32 x 1 normalized image	                |
+| Convolution 5x5     	| 1x1 stride, 32 filters, valid padding, outputs 28 x 28 x 32 |
+| RELU					|												|
+| Dropout				| Drop probability 0.1							|
+| Convolution 3x3	    | 1x1 stride, 64 filters, valid padding, outputs 26 x 26 x 64 |
+| RELU					|												|
+| Dropout				| Drop probability 0.1							|
+| Flatten               | 1 x 43264 vector                              |
+| Fully connected		| 1 x 1024 vector                        	    |
+| Dropout				| Drop probability 0.1							|
+| Fully connected		| 1 x 528 vector                      			|
+| Dropout				| Drop probability 0.1							|
+| Fully connected		| 1 x 43 vector                         		|
+| Softmax				| 1 x 43 vector						            |
+
+Maxpooling has been left out and replaced with dropouts to increased training speed and performances, due to the fact that maxpooling will lead to loss of information during training. Valid padding also performs better than same padding as it reduces the number of paramters to train in the network.
+
+The model summary is shown below
+
+ <p align="center">
+    <img src="examples/model_summary.png" width="500" height="500">
+</p>
+
+
+### 3. Model training
