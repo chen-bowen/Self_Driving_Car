@@ -1,29 +1,19 @@
-## Project: Build a Traffic Sign Recognition Program
-[![Udacity - Self-Driving Car NanoDegree](https://s3.amazonaws.com/udacity-sdc/github/shield-carnd.svg)](http://www.udacity.com/drive)
+# Build a Traffic Sign Recognition Program
 
 Overview
 ---
-In this project, you will use what you've learned about deep neural networks and convolutional neural networks to classify traffic signs. You will train and validate a model so it can classify traffic sign images using the [German Traffic Sign Dataset](http://benchmark.ini.rub.de/?section=gtsrb&subsection=dataset). After the model is trained, you will then try out your model on images of German traffic signs that you find on the web.
+This project builds, trains and validates a model that can classify traffic sign images using the [German Traffic Sign Dataset](http://benchmark.ini.rub.de/?section=gtsrb&subsection=dataset). The trained model is subsequently tested on German traffic signs found on the web. The traffic sign recongnition pipeline is built with Tensorflow 2.4.1, containing the preprocessing steps and a subsequent deep convolutional neural network.
 
-We have included an Ipython notebook that contains further instructions 
-and starter code. Be sure to download the [Ipython notebook](https://github.com/udacity/CarND-Traffic-Sign-Classifier-Project/blob/master/Traffic_Sign_Classifier.ipynb). 
-
-We also want you to create a detailed writeup of the project. Check out the [writeup template](https://github.com/udacity/CarND-Traffic-Sign-Classifier-Project/blob/master/writeup_template.md) for this project and use it as a starting point for creating your own writeup. The writeup can be either a markdown file or a pdf document.
-
-To meet specifications, the project will require submitting three files: 
-* the Ipython notebook with the code
-* the code exported as an html file
-* a writeup report either as a markdown or pdf file 
-
-Creating a Great Writeup
+Required Packages
 ---
-A great writeup should include the [rubric points](https://review.udacity.com/#!/rubrics/481/view) as well as your description of how you addressed each point.  You should include a detailed description of the code used in each step (with line-number references and code snippets where necessary), and links to other supporting documents or external references.  You should include images in your writeup to demonstrate how your code works with examples.  
+* tensorflow (2.4.1)
+* python
+* cv2
+* matplotlib
+* numpy 
+* pandas
 
-All that said, please be concise!  We're not looking for you to write a book here, just a brief description of how you passed each rubric point, and references to the relevant code :). 
-
-You're not required to use markdown for your writeup.  If you use another method please just submit a pdf of your writeup.
-
-The Project
+The Project Steps Outline
 ---
 The goals / steps of this project are the following:
 * Load the data set
@@ -33,26 +23,73 @@ The goals / steps of this project are the following:
 * Analyze the softmax probabilities of the new images
 * Summarize the results with a written report
 
-### Dependencies
-This lab requires:
+Dataset Summary
+---
+Pandas library is used to calculate summary statistics of the traffic
+signs data set:
 
-* [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit)
+* The size of training set is 27839
+* The size of the validation set is 6960
+* The size of test set is 12630
+* The shape of a traffic sign image is 32 x 32 x 3
+* The number of unique classes/labels in the data set is 43
 
-The lab environment can be created with CarND Term1 Starter Kit. Click [here](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) for the details.
+Exploratory Analysis 
+---
+The dataset consists of 43 different classes that represents the following signs respectively
 
-### Dataset and Repository
+|ClassId|SignName|
+|-------|--------|
+|0      |Speed limit (20km/h)|
+|1      |Speed limit (30km/h)|
+|2      |Speed limit (50km/h)|
+|3      |Speed limit (60km/h)|
+|4      |Speed limit (70km/h)|
+|5      |Speed limit (80km/h)|
+|6      |End of speed limit (80km/h)|
+|7      |Speed limit (100km/h)|
+|8      |Speed limit (120km/h)|
+|9      |No passing|
+|10     |No passing for vehicles over 3.5 metric tons|
+|11     |Right-of-way at the next intersection|
+|12     |Priority road|
+|13     |Yield   |
+|14     |Stop    |
+|15     |No vehicles|
+|16     |Vehicles over 3.5 metric tons prohibited|
+|17     |No entry|
+|18     |General caution|
+|19     |Dangerous curve to the left|
+|20     |Dangerous curve to the right|
+|21     |Double curve|
+|22     |Bumpy road|
+|23     |Slippery road|
+|24     |Road narrows on the right|
+|25     |Road work|
+|26     |Traffic signals|
+|27     |Pedestrians|
+|28     |Children crossing|
+|29     |Bicycles crossing|
+|30     |Beware of ice/snow|
+|31     |Wild animals crossing|
+|32     |End of all speed and passing limits|
+|33     |Turn right ahead|
+|34     |Turn left ahead|
+|35     |Ahead only|
+|36     |Go straight or right|
+|37     |Go straight or left|
+|38     |Keep right|
+|39     |Keep left|
+|40     |Roundabout mandatory|
+|41     |End of no passing|
+|42     |End of no passing by vehicles over 3.5 metric tons|
 
-1. Download the data set. The classroom has a link to the data set in the "Project Instructions" content. This is a pickled dataset in which we've already resized the images to 32x32. It contains a training, validation and test set.
-2. Clone the project, which contains the Ipython notebook and the writeup template.
-```sh
-git clone https://github.com/udacity/CarND-Traffic-Sign-Classifier-Project
-cd CarND-Traffic-Sign-Classifier-Project
-jupyter notebook Traffic_Sign_Classifier.ipynb
-```
 
-### Requirements for Submission
-Follow the instructions in the `Traffic_Sign_Classifier.ipynb` notebook and write the project report using the writeup template as a guide, `writeup_template.md`. Submit the project code and writeup document.
+Though each class has relatively different distributions, the training and test set has similar % of distributions across these classes
 
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
+ <p align="center">
+    <img src="examples/visualization.png" width="800" height="400">
+</p>
 
+Model Architecture
+---
