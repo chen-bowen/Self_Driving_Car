@@ -31,5 +31,19 @@ After processing by the pipeline, every scene will be annotated with lanes highl
 <img src="images/lane_detection.gif" width="800" height="500">
 
 
+### Project 3
+
+This project builds, trains and validates a model that can classify traffic sign images using the [German Traffic Sign Dataset](http://benchmark.ini.rub.de/?section=gtsrb&subsection=dataset). The trained model is subsequently tested on German traffic signs found on the web. The traffic sign recongnition pipeline is built with Tensorflow 2.4.1, containing the preprocessing steps and a subsequent deep convolutional neural network.
+
+Sample results looks like the following
+
+ <p align="left">
+    <img src="examples/predict_test_images.png" width="600" height="130">
+</p>
+
+
+
+
+
 
 We will then apply the same pipeline to all scenes as the car drives down the road.
