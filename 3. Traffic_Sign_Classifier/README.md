@@ -88,7 +88,7 @@ The dataset consists of 43 different classes that represents the following signs
 Though each class has relatively different distributions, the training and test set has similar % of distributions across these classes
 
  <p align="left">
-    <img src="examples/dataset_visualization.png" width="800" height="400">
+    <img src="examples/dataset_visualization.png" width="800" height="350">
 </p>
 
 Model Architecture
@@ -143,4 +143,18 @@ The model summary is shown below
 </p>
 
 
-### 3. Model training
+### 3. Model Training
+
+To train the model, a cost function will need to be defined. Since there are 43 different classes in this model, the appropriate loss function will be the multi-class cross entropy loss between the model predicted label and the true label. The true label will be a 1 x 43 vector with the true class position being 1, everyting else being 0. The model predicted label will be 1 x 43 vector with varying values between 0 and 1.
+
+The optimizer is defined to be Adam Optimizer, which utilizes momentum to adjust the step size to achieve better performances. The model is trained using mini-batch gradient descent whose batch size is 128. The learning rate is set to be 0.001, training for 250 steps.
+
+### 4. Approach for Building the Model and Evaluation
+
+The final performance of the model is 
+
+* training set accuracy of 96.1%
+* validation set accuracy of 93.9%
+* test set accuracy of 84.2%
+
+The first architecture 
