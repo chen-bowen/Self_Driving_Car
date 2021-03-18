@@ -28,9 +28,8 @@ Continue with what was accomplished in project 1, a more robust software pipelin
 After processing by the pipeline, every scene will be annotated with lanes highlighted and drivable areas illumniated.
 
 
-<p align="center">
-  <img src="images/lane_detection.gif" width="800" height="500">
-</p>
+<img src="images/lane_detection.gif" width="800" height="500">
+
 
 
 We will then apply the same pipeline to all scenes as the car drives down the road.
