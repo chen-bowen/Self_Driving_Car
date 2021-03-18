@@ -38,7 +38,7 @@ This project builds, trains and validates a model that can classify traffic sign
 Sample results looks like the following
 
  <p align="left">
-    <img src="examples/predict_test_images.png" width="600" height="130">
+    <img src="images/predict_test_images.png" width="600" height="130">
 </p>
 
 
