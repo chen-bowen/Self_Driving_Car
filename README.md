@@ -19,3 +19,23 @@ We will then apply the alogorithm over some short video clips (series of images)
 
 <img src="images/solidYellowLeft_improved.gif" width="800" height="500">
 
+### Project 2
+
+With more advanced techiques we will be able to map out a clearer drivable region that is less affected by the noise on the road.
+
+Continue with what was accomplished in project 1, a more robust software pipeline to identify the lane boundaries in a video will be created using Python and OpenCV. Starting from an image scene like below
+
+<p align="center">
+  <img src="output_images/original_img.jpg" width="800" height="500">
+</p>
+
+
+After processing by the pipeline the same image will be annotated with lanes highlighted and drivable areas illumniated.
+
+
+<p align="center">
+  <img src="output_images/annotated_scene.jpg" width="800" height="500">
+</p>
+
+
+We will then apply the same pipeline to all scenes as the car drives down the road.
