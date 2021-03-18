@@ -157,4 +157,94 @@ The final performance of the model is
 * validation set accuracy of 93.9%
 * test set accuracy of 84.2%
 
-The first architecture 
+The first architecture tried that did not work well was a similar architecture but instead of dropout (0.1), 2x2 maxpooling of stride 1 was used before relu layer. Since maxpooling cause loss of information and the whole network without dropouts was really prone to overfitting. The model was able to perform extremely well on training set with ~99% accuracy, but the performance on validation set start to drop after iteration 100 after it reaches its peak at 85%. For this reason, dropout layers were addded right after relu activation layer to avoid overfitting, which was deemed to be effective. The performance on the validation set was able to reach 93% after training for 500 steps.
+
+Maxpooling layers were eventually taken away as they added extra parameters required to train the network, which requires higher number of epochs. Also using valid padding also reduces the number of trainable parameters in the network. The number of steps required to reach current performance was reduced to 250. 
+
+The performance of training, validation and test does not defer by 20% is an evidence of current architecture being effective.
+
+Test the Model on New Images
+---
+
+### New Images Chosen
+
+Below showed a sample of randomly chosen German traffic sign images from the internet
+
+ <p align="left">
+    <img src="examples/chosen_test_images.png" width="600" height="120">
+</p>
+
+In the chosen images, none of them was originally 32 x 32. Therefore a resize operation was performed, which might cause some loss of information. The 4 th image, in particular is smaller than 32 x 32 (original size was 24 x 24), resizing to 32 x 32 significantly lowered the resolution. From human eyes, the number on the sign looks like 73. In addition, the multi-colored background could also be a confounding factor for the model as some patterns could be falsefully recognized as features useful for classification.
+
+### Predictions
+
+The predictions on these 5 images are
+
+ <p align="left">
+    <img src="examples/predict_test_images.png" width="600" height="130">
+</p>
+
+Most of the images' classes are correctly predicted, with only the fourth image (the most difficult one) got incorrectly predicted, which brings the performance of the network to 80% on these test images. 80% accuracy is also quite close to the performance of the test set provided in the data.
+
+### Performance Visualizations
+
+Visualizing softmax probabilities will also give insights to the models' performances. 
+
+For image 1, 2, 3 and 5, the model is so sure about the answer so it directly put 1 on the correct answer
+
+Image 4 (the one that looks like 73) made the model confused a bit, eventually put 1 as the final prediction (1 is speed limit 30)
+
+#### Image 1
+
+Top 3 model predictions for image 1 (True label is 16)
+   * Prediction = 16 with confidence 1.00 
+   * Prediction = 7 with confidence 0.00
+   * Prediction = 10 with confidence 0.00
+
+ <p align="left">
+    <img src="examples/image_1.png" width="600" height="150">
+</p>
+
+#### Image 2
+
+Top 3 model predictions for image 2 (True label is 38)
+   * Prediction = 38 with confidence 1.00
+   * Prediction = 34 with confidence 0.00
+   * Prediction = 15 with confidence 0.00
+
+ <p align="left">
+    <img src="examples/image_2.png" width="600" height="150">
+</p>
+
+#### Image 3 
+
+Top 3 model predictions for image 3 (True label is 18)
+   * Prediction = 18 with confidence 1.00
+   * Prediction = 27 with confidence 0.00
+   * Prediction = 26 with confidence 0.00
+
+ <p align="left">
+    <img src="examples/image_3.png" width="600" height="150">
+</p>
+
+#### Image 4
+
+Top 3 model predictions for image 4 (True label is 4)
+   * Prediction = 1 with confidence 0.92
+   * Prediction = 4 with confidence 0.08
+   * Prediction = 0 with confidence 0.00
+   
+ <p align="left">
+    <img src="examples/image_4.png" width="600" height="150">
+</p>
+
+#### Image 5
+
+Top 3 model predictions for image 5 (True label is 33)
+   * Prediction = 33 with confidence 1.00
+   * Prediction = 39 with confidence 0.00
+   * Prediction = 2 with confidence 0.00
+   
+ <p align="left">
+    <img src="examples/image_5.png" width="600" height="150">
+</p>
