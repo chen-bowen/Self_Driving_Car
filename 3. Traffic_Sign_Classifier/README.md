@@ -147,21 +147,21 @@ The model summary is shown below
 
 To train the model, a cost function will need to be defined. Since there are 43 different classes in this model, the appropriate loss function will be the multi-class cross entropy loss between the model predicted label and the true label. The true label will be a 1 x 43 vector with the true class position being 1, everyting else being 0. The model predicted label will be 1 x 43 vector with varying values between 0 and 1.
 
-The optimizer is defined to be Adam Optimizer, which utilizes momentum to adjust the step size to achieve better performances. The model is trained using mini-batch gradient descent whose batch size is 128. The learning rate is set to be 0.001, training for 250 steps.
+The optimizer is defined to be Adam Optimizer, which utilizes momentum to adjust the step size to achieve better performances. The model is trained using mini-batch gradient descent whose batch size is 128. The learning rate is set to be 0.001, training for 300 steps.
 
 ### 4. Approach for Building the Model and Evaluation
 
 The final performance of the model is 
 
-* training set accuracy of 96.1%
-* validation set accuracy of 93.9%
-* test set accuracy of 84.2%
+* training set accuracy of 95.3%
+* validation set accuracy of 95.0%
+* test set accuracy of 86.6%
 
 The first architecture tried that did not work well was a similar architecture but instead of dropout (0.1), 2x2 maxpooling of stride 1 was used before relu layer. Since maxpooling cause loss of information and the whole network without dropouts was really prone to overfitting. The model was able to perform extremely well on training set with ~99% accuracy, but the performance on validation set start to drop after iteration 100 after it reaches its peak at 85%. For this reason, dropout layers were addded right after relu activation layer to avoid overfitting, which was deemed to be effective. The performance on the validation set was able to reach 93% after training for 500 steps.
 
 Maxpooling layers were eventually taken away as they added extra parameters required to train the network, which requires higher number of epochs. Also using valid padding also reduces the number of trainable parameters in the network. The number of steps required to reach current performance was reduced to 250. 
 
-The performance of training, validation and test does not defer by 20% is an evidence of current architecture being effective.
+The performance of training, validation and test does not defer by 10% is an evidence of current architecture being effective. Training for more steps could further improve the performance, but the improvement won't be massive.
 
 Test the Model on New Images
 ---
@@ -230,9 +230,9 @@ Top 3 model predictions for image 3 (True label is 18)
 #### Image 4
 
 Top 3 model predictions for image 4 (True label is 4)
-   * Prediction = 1 with confidence 0.92
-   * Prediction = 4 with confidence 0.08
-   * Prediction = 0 with confidence 0.00
+   Prediction = 1 with confidence 0.90
+   Prediction = 4 with confidence 0.10
+   Prediction = 0 with confidence 0.00
    
  <p align="left">
     <img src="examples/image_4.png" width="600" height="150">
